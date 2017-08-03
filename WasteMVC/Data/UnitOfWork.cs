@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WasteMVC.Models;
+using System.Threading.Tasks;
 
 namespace WasteMVC.Data
 {
@@ -38,6 +39,15 @@ namespace WasteMVC.Data
         {
             this.Context = new TContext();
             this.Repositories = new Dictionary<Type, object>();
+        }
+
+        public UnitOfWork(TContext _context)
+        {
+            if (_context != null)
+            {
+                this.Context = _context;
+                this.Repositories = new Dictionary<Type, object>();
+            }
         }
 
         public virtual IRepository<TEntity> GetRepository<TEntity>()
@@ -162,9 +172,35 @@ namespace WasteMVC.Data
             return _dataObject;
         }
 
-        public virtual int Commit()
+        internal virtual int Commit()
         {
             return this.Save();
+        }
+
+        private Task<int> SaveAsync()
+        {
+            foreach (var entry in this.Context.ChangeTracker.Entries())
+            {
+                EntityBase entity = (EntityBase)entry.Entity;
+                if (entry.State == EntityState.Added)
+                {
+                    entity.Created_At = DateTime.Now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entity.Updated_At = DateTime.Now;
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    entity.Deleted_At = DateTime.Now;
+                }
+            }
+            return this.Context.SaveChangesAsync();
+        }
+
+        internal Task<int> CommitAsync()
+        {
+            return this.SaveAsync();
         }
     }
 }

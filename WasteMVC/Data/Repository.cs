@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using WasteMVC.Models;
 
 namespace WasteMVC.Data
@@ -222,6 +223,50 @@ namespace WasteMVC.Data
                 this.EntitySet.Attach(_objectupdate);
                 this.Context.Entry(_objectupdate).State = EntityState.Modified;
                 return true;
+            }
+        }
+
+        public bool Any(Expression<Func<TEntity, bool>> filter)
+        {
+            if ((this.Context == null) || (this.EntitySet == null) || (filter == null))
+            {
+                return false;
+            }
+            else
+            {
+                return this.EntitySet.Any(filter);
+            }
+        }
+
+        // Metodos Asycn
+        public virtual Task<List<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> filter = null)
+        {
+            if ((this.Context == null) || (this.EntitySet == null))
+            {
+                return null;
+            }
+            else if (filter != null)
+            {
+                return this.EntitySet.Where(filter).ToListAsync();
+            }
+            else
+            {
+                return this.EntitySet.ToListAsync();
+            }
+        }
+        public virtual Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter)
+        {
+            if ((this.Context == null) || (this.EntitySet == null))
+            {
+                return null;
+            }
+            else if (filter != null)
+            {
+                return this.EntitySet.FirstOrDefaultAsync(filter);
+            }
+            else
+            {
+                return null;
             }
         }
     }

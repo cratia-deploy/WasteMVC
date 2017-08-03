@@ -7,6 +7,9 @@ namespace WasteMVC.Data
     {
         public DbSet<Person> Persons { get; set; }
 
+        public SystemContext() : base()
+        { }
+
         public SystemContext(DbContextOptions<SystemContext> _options) : base(_options)
         { }
 

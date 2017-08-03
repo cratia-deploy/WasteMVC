@@ -12,17 +12,18 @@ namespace WasteMVC.Controllers
 {
     public class PersonsController : Controller
     {
-        private readonly SystemContext _context;
+        private readonly UnitOfWork<SystemContext> _uow = null;
 
-        public PersonsController(SystemContext context)
+        public PersonsController(SystemContext _context)
         {
-            _context = context;    
+            _uow = new UnitOfWork<SystemContext>(_context);
         }
 
         // GET: Persons
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Persons.ToListAsync());
+            return View(await _uow.GetRepository<Person>()
+                                    .GetAllAsync());
         }
 
         // GET: Persons/Details/5
@@ -33,14 +34,15 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var person = await _context.Persons
-                .SingleOrDefaultAsync(m => m.Id == id);
-            if (person == null)
+            Person _person = await _uow.GetRepository<Person>()
+                                        .FindAsync(x => x.Id == id);
+        
+            if (_person == null)
             {
                 return NotFound();
             }
 
-            return View(person);
+            return View(_person);
         }
 
         // GET: Persons/Create
@@ -54,13 +56,15 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Id,Created_At,Updated_At,Deleted_At")] Person person)
+        public async Task<IActionResult> Create([Bind("FirstName,LastName,Id")] Person person)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(person);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                if (_uow.GetRepository<Person>().Add(person))
+                {
+                    await _uow.CommitAsync();
+                    return RedirectToAction("Index");
+                }
             }
             return View(person);
         }
@@ -73,12 +77,13 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var person = await _context.Persons.SingleOrDefaultAsync(m => m.Id == id);
-            if (person == null)
+            Person _person = await _uow.GetRepository<Person>()
+                                        .FindAsync(x => x.Id == id);
+            if (_person == null)
             {
                 return NotFound();
             }
-            return View(person);
+            return View(_person);
         }
 
         // POST: Persons/Edit/5
@@ -86,9 +91,9 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("FirstName,LastName,Id,Created_At,Updated_At,Deleted_At")] Person person)
+        public async Task<IActionResult> Edit(int id, [Bind("FirstName,LastName,Id,Created_At,Updated_At,Deleted_At")] Person _person)
         {
-            if (id != person.Id)
+            if (id != _person.Id)
             {
                 return NotFound();
             }
@@ -97,12 +102,12 @@ namespace WasteMVC.Controllers
             {
                 try
                 {
-                    _context.Update(person);
-                    await _context.SaveChangesAsync();
+                    if(_uow.GetRepository<Person>().Update(_person))
+                        await _uow.CommitAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PersonExists(person.Id))
+                    if (!PersonExists(_person.Id))
                     {
                         return NotFound();
                     }
@@ -113,7 +118,7 @@ namespace WasteMVC.Controllers
                 }
                 return RedirectToAction("Index");
             }
-            return View(person);
+            return View(_person);
         }
 
         // GET: Persons/Delete/5
@@ -124,14 +129,14 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var person = await _context.Persons
-                .SingleOrDefaultAsync(m => m.Id == id);
-            if (person == null)
+            Person _person = await _uow.GetRepository<Person>().FindAsync(x => x.Id == id);
+
+            if (_person == null)
             {
                 return NotFound();
             }
 
-            return View(person);
+            return View(_person);
         }
 
         // POST: Persons/Delete/5
@@ -139,15 +144,18 @@ namespace WasteMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var person = await _context.Persons.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Persons.Remove(person);
-            await _context.SaveChangesAsync();
+            var _person = await _uow.GetRepository<Person>().FindAsync(x => x.Id == id);
+            if (_person != null)
+            {
+                if(_uow.GetRepository<Person>().Delete(id))
+                    await _uow.CommitAsync();
+            }
             return RedirectToAction("Index");
         }
 
         private bool PersonExists(int id)
         {
-            return _context.Persons.Any(e => e.Id == id);
+            return _uow.GetRepository<Person>().Any(p => p.Id == id);
         }
     }
 }
