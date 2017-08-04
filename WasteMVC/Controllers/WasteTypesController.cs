@@ -22,7 +22,7 @@ namespace WasteMVC.Controllers
         // GET: WasteTypes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.WasteType.ToListAsync());
+            return View(await _context.WasteTypes.ToListAsync());
         }
 
         // GET: WasteTypes/Details/5
@@ -33,7 +33,7 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var wasteType = await _context.WasteType
+            var wasteType = await _context.WasteTypes
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (wasteType == null)
             {
@@ -73,7 +73,7 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var wasteType = await _context.WasteType.SingleOrDefaultAsync(m => m.Id == id);
+            var wasteType = await _context.WasteTypes.SingleOrDefaultAsync(m => m.Id == id);
             if (wasteType == null)
             {
                 return NotFound();
@@ -124,7 +124,7 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var wasteType = await _context.WasteType
+            var wasteType = await _context.WasteTypes
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (wasteType == null)
             {
@@ -139,15 +139,15 @@ namespace WasteMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var wasteType = await _context.WasteType.SingleOrDefaultAsync(m => m.Id == id);
-            _context.WasteType.Remove(wasteType);
+            var wasteType = await _context.WasteTypes.SingleOrDefaultAsync(m => m.Id == id);
+            _context.WasteTypes.Remove(wasteType);
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
         private bool WasteTypeExists(int id)
         {
-            return _context.WasteType.Any(e => e.Id == id);
+            return _context.WasteTypes.Any(e => e.Id == id);
         }
     }
 }

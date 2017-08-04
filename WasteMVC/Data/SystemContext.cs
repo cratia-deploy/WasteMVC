@@ -6,8 +6,8 @@ namespace WasteMVC.Data
     public class SystemContext : DbContext
     {
         public DbSet<Person> Persons { get; set; }
-        public DbSet<WasteType> WasteType { get; set; }
-
+        public DbSet<WasteType> WasteTypes { get; set; }
+ 
         public SystemContext() : base()
         { }
 
@@ -39,6 +39,7 @@ namespace WasteMVC.Data
                 .IsUnique()
                 ;
         }
+        public DbSet<WasteMVC.Models.Partner> Partner { get; set; }
         
     }
 }
