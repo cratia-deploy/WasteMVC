@@ -24,7 +24,7 @@ namespace WasteMVC.Migrations
                 oldNullable: true);
 
             migrationBuilder.CreateTable(
-                name: "WasteType",
+                name: "WasteTypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -36,11 +36,11 @@ namespace WasteMVC.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WasteType", x => x.Id);
+                    table.PrimaryKey("PK_WasteTypes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Waste",
+                name: "Wastes",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -56,17 +56,17 @@ namespace WasteMVC.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Waste", x => x.Id);
+                    table.PrimaryKey("PK_Wastes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Waste_WasteType_WasteTypeId",
+                        name: "FK_Wastes_WasteTypes_WasteTypeId",
                         column: x => x.WasteTypeId,
-                        principalTable: "WasteType",
+                        principalTable: "WasteTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Partner",
+                name: "Partners",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -80,39 +80,39 @@ namespace WasteMVC.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Partner", x => x.Id);
+                    table.PrimaryKey("PK_Partners", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Partner_Persons_PersonId",
+                        name: "FK_Partners_Persons_PersonId",
                         column: x => x.PersonId,
                         principalTable: "Persons",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Partner_Waste_WasteId",
+                        name: "FK_Partners_Wastes_WasteId",
                         column: x => x.WasteId,
-                        principalTable: "Waste",
+                        principalTable: "Wastes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Partner_PersonId",
-                table: "Partner",
+                name: "IX_Partners_PersonId",
+                table: "Partners",
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Partner_WasteId",
-                table: "Partner",
+                name: "IX_Partners_WasteId",
+                table: "Partners",
                 column: "WasteId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Waste_WasteTypeId",
-                table: "Waste",
+                name: "IX_Wastes_WasteTypeId",
+                table: "Wastes",
                 column: "WasteTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WasteType_Description",
-                table: "WasteType",
+                name: "IX_WasteTypes_Description",
+                table: "WasteTypes",
                 column: "Description",
                 unique: true);
         }
@@ -120,13 +120,13 @@ namespace WasteMVC.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Partner");
+                name: "Partners");
 
             migrationBuilder.DropTable(
-                name: "Waste");
+                name: "Wastes");
 
             migrationBuilder.DropTable(
-                name: "WasteType");
+                name: "WasteTypes");
 
             migrationBuilder.AlterColumn<string>(
                 name: "LastName",

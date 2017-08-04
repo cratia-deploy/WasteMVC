@@ -8,7 +8,7 @@ using WasteMVC.Data;
 namespace WasteMVC.Migrations
 {
     [DbContext(typeof(SystemContext))]
-    [Migration("20170804140829_ADD_Entitys_WasteType_Waste_Partner")]
+    [Migration("20170804153706_ADD_Entitys_WasteType_Waste_Partner")]
     partial class ADD_Entitys_WasteType_Waste_Partner
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,7 +40,7 @@ namespace WasteMVC.Migrations
 
                     b.HasIndex("WasteId");
 
-                    b.ToTable("Partner");
+                    b.ToTable("Partners");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.Person", b =>
@@ -93,7 +93,7 @@ namespace WasteMVC.Migrations
 
                     b.HasIndex("WasteTypeId");
 
-                    b.ToTable("Waste");
+                    b.ToTable("Wastes");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.WasteType", b =>
@@ -114,7 +114,7 @@ namespace WasteMVC.Migrations
                     b.HasIndex("Description")
                         .IsUnique();
 
-                    b.ToTable("WasteType");
+                    b.ToTable("WasteTypes");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.Partner", b =>

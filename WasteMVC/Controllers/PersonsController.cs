@@ -35,7 +35,11 @@ namespace WasteMVC.Controllers
             }
 
             Person _person = await _uow.GetRepository<Person>()
-                                        .FindAsync(x => x.Id == id);
+                                        .Get(p => p.Id == id)
+                                        .Include(p => p.Business)
+                                            .ThenInclude ( p => p.Waste)
+                                                .ThenInclude( wt => wt.WasteType)
+                                        .SingleOrDefaultAsync();
         
             if (_person == null)
             {

@@ -39,7 +39,7 @@ namespace WasteMVC.Migrations
 
                     b.HasIndex("WasteId");
 
-                    b.ToTable("Partner");
+                    b.ToTable("Partners");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.Person", b =>
@@ -92,7 +92,7 @@ namespace WasteMVC.Migrations
 
                     b.HasIndex("WasteTypeId");
 
-                    b.ToTable("Waste");
+                    b.ToTable("Wastes");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.WasteType", b =>
@@ -113,7 +113,7 @@ namespace WasteMVC.Migrations
                     b.HasIndex("Description")
                         .IsUnique();
 
-                    b.ToTable("WasteType");
+                    b.ToTable("WasteTypes");
                 });
 
             modelBuilder.Entity("WasteMVC.Models.Partner", b =>
