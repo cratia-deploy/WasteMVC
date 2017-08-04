@@ -63,26 +63,14 @@ namespace WasteMVC.Data
             return Repositories[typeof(TEntity)] as IRepository<TEntity>; ;
         }
 
-        private int Save()
+        internal int Commit()
         {
             bool saveFailed;
             int count = 0;
 
             foreach (var entry in this.Context.ChangeTracker.Entries())
             {
-                EntityBase entity = (EntityBase)entry.Entity;
-                if (entry.State == EntityState.Added)
-                {
-                    entity.Created_At = DateTime.Now;
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    entity.Updated_At = DateTime.Now;
-                }
-                else if (entry.State == EntityState.Deleted)
-                {
-                    entity.Deleted_At = DateTime.Now;
-                }
+                ChangeEntryStateEntity<EntityBase>(entry);
             }
 
             do
@@ -92,20 +80,16 @@ namespace WasteMVC.Data
                 {
                     count += this.Context.SaveChanges();
                 }
-                catch (DbUpdateException ex)
+                catch (DbUpdateException)
                 {
                     saveFailed = true;
                     var _entry = Context.ChangeTracker.Entries().First();
                     this.RollBack(_entry);
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.InnerException.Message);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     saveFailed = true;
                     this.RollBack();
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.InnerException.Message);
                 }
             } while (saveFailed);
             return count;
@@ -172,35 +156,60 @@ namespace WasteMVC.Data
             return _dataObject;
         }
 
-        internal virtual int Commit()
-        {
-            return this.Save();
-        }
-
-        private Task<int> SaveAsync()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal async Task<int> CommitAsync()
         {
             foreach (var entry in this.Context.ChangeTracker.Entries())
             {
-                EntityBase entity = (EntityBase)entry.Entity;
-                if (entry.State == EntityState.Added)
+                ChangeEntryStateEntity<EntityBase>(entry);
+            }
+
+            int count = 0;
+            bool saveFailed = false;
+            do
+            {
+                try
+                {
+                    saveFailed = false;
+                    count += await this.Context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    saveFailed = true;
+                    var _entry = Context.ChangeTracker.Entries().First();
+                    this.RollBack(_entry);
+                }
+                catch (Exception)
+                {
+                    saveFailed = true;
+                    this.RollBack();
+                }
+            } while (saveFailed);
+            return count;
+        }
+
+        private void ChangeEntryStateEntity<TEntity>(EntityEntry _entry)
+            where TEntity : EntityBase
+        {
+            if (_entry != null)
+            {
+                EntityBase entity = (EntityBase)_entry.Entity;
+                if (_entry.State == EntityState.Added)
                 {
                     entity.Created_At = DateTime.Now;
                 }
-                else if (entry.State == EntityState.Modified)
+                else if (_entry.State == EntityState.Modified)
                 {
                     entity.Updated_At = DateTime.Now;
                 }
-                else if (entry.State == EntityState.Deleted)
+                else if (_entry.State == EntityState.Deleted)
                 {
                     entity.Deleted_At = DateTime.Now;
                 }
             }
-            return this.Context.SaveChangesAsync();
-        }
-
-        internal Task<int> CommitAsync()
-        {
-            return this.SaveAsync();
         }
     }
 }
