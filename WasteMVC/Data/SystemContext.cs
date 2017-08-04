@@ -8,6 +8,7 @@ namespace WasteMVC.Data
         public DbSet<Person> Persons { get; set; }
         public DbSet<WasteType> WasteTypes { get; set; }
         public DbSet<Partner> Partners { get; set; }
+        public DbSet<Waste> Wastes { get; set; }
 
         public SystemContext() : base()
         { }
@@ -39,6 +40,6 @@ namespace WasteMVC.Data
                 .HasIndex(x => x.Description)
                 .IsUnique()
                 ;
-        }
+        }        
     }
 }
