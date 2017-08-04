@@ -12,16 +12,19 @@ namespace WasteMVC.Models
     {
         public int Id { get; set; }
 
+        [ScaffoldColumn(false)]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy (hh:mm:ss tt)}", ApplyFormatInEditMode = true)]
         [DisplayName("Creado En")]
         public DateTime Created_At { get; set; } = DateTime.MinValue;
 
+        [ScaffoldColumn(false)]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy (hh:mm:ss tt)}", ApplyFormatInEditMode = true)]
         [DisplayName("Actualizado En")]
         public DateTime Updated_At { get; set; } = DateTime.MinValue;
 
+        [ScaffoldColumn(false)]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy (hh:mm:ss tt)}", ApplyFormatInEditMode = true)]
         [DisplayName("Eliminado En")]
