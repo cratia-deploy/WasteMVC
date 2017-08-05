@@ -3,7 +3,7 @@ using WasteMVC.Models;
 
 namespace WasteMVC.Data
 {
-    public class SystemContext : DbContext 
+    public class SystemContext : DbContext
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<WasteType> WasteTypes { get; set; }
@@ -24,6 +24,13 @@ namespace WasteMVC.Data
             modelBuilder.Entity<Partner>()
                 .HasOne(pt => pt.Person)
                 .WithMany(p => p.Business)
+                .HasForeignKey(p => p.PersonId)
+                ;
+
+            modelBuilder.Entity<Partner>()
+                .HasOne(pt => pt.Waste)
+                .WithMany(w => w.Partners)
+                .HasForeignKey(p => p.WasteId)
                 ;
 
             modelBuilder.Entity<Person>()
