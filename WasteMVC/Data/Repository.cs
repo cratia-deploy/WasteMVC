@@ -8,35 +8,14 @@ using WasteMVC.Models;
 
 namespace WasteMVC.Data
 {
-    public class Repository<TContext, TEntity> : IDisposable, IRepository<TEntity>
+    public class Repository<TContext, TEntity> : IRepository<TEntity>
         where TEntity : EntityBase
         where TContext : DbContext
     {
-        #region IDisposable Support
-        private bool disposedValue = false; // Para detectar llamadas redundantes
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    this.Context.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
         private readonly TContext Context = null;
         private readonly DbSet<TEntity> EntitySet = null;
 
-        public Repository(ref TContext _DbContext)
+        public Repository(TContext _DbContext)
         {
             if (_DbContext != null)
             {

@@ -8,34 +8,13 @@ using System.Threading.Tasks;
 
 namespace WasteMVC.Data
 {
-    class UnitOfWork<TContext> : IDisposable
+    class UnitOfWork<TContext> 
             where TContext : DbContext
     {
-        #region IDisposable Support
-        private bool disposedValue = false; // Para detectar llamadas redundantes
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    this.Context.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
         private TContext Context = null;
         private readonly Dictionary<Type, object> Repositories = null;
 
-        public UnitOfWork(ref TContext _context)
+        public UnitOfWork(TContext _context)
         {
             if (_context != null)
             {
@@ -51,7 +30,7 @@ namespace WasteMVC.Data
             {
                 this.Repositories.Add(
                     typeof(TEntity),
-                    new Repository<TContext, TEntity>(ref this.Context)
+                    new Repository<TContext, TEntity>(this.Context)
                     );
             }
             return Repositories[typeof(TEntity)] as IRepository<TEntity>; ;

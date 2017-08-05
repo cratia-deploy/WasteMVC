@@ -10,7 +10,7 @@ namespace WasteMVC.Data
         {
             _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
-            UnitOfWork<SystemContext> _uow = new UnitOfWork<SystemContext>(ref _context);
+            UnitOfWork<SystemContext> _uow = new UnitOfWork<SystemContext>(_context);
             Random rnd = new Random();
 
             _uow.GetRepository<Waste>()
