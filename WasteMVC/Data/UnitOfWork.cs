@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace WasteMVC.Data
 {
     class UnitOfWork<TContext> : IDisposable
-            where TContext : DbContext, new()
+            where TContext : DbContext
     {
         #region IDisposable Support
         private bool disposedValue = false; // Para detectar llamadas redundantes
@@ -34,12 +34,6 @@ namespace WasteMVC.Data
 
         private TContext Context = null;
         private readonly Dictionary<Type, object> Repositories = null;
-
-        public UnitOfWork()
-        {
-            this.Context = new TContext();
-            this.Repositories = new Dictionary<Type, object>();
-        }
 
         public UnitOfWork(TContext _context)
         {

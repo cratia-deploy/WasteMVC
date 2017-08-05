@@ -3,23 +3,16 @@ using WasteMVC.Models;
 
 namespace WasteMVC.Data
 {
-    public class SystemContext : DbContext
+    public class SystemContext : DbContext 
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<WasteType> WasteTypes { get; set; }
         public DbSet<Partner> Partners { get; set; }
         public DbSet<Waste> Wastes { get; set; }
 
-        public SystemContext() : base()
-        { }
-
         public SystemContext(DbContextOptions<SystemContext> _options) : base(_options)
         { }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=WasteMVC1;Trusted_Connection=True;MultipleActiveResultSets=true");
-        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Waste>()

@@ -10,7 +10,7 @@ namespace WasteMVC.Data
 {
     public class Repository<TContext, TEntity> : IDisposable, IRepository<TEntity>
         where TEntity : EntityBase
-        where TContext : DbContext, new()
+        where TContext : DbContext
     {
         #region IDisposable Support
         private bool disposedValue = false; // Para detectar llamadas redundantes
@@ -36,11 +36,6 @@ namespace WasteMVC.Data
         private readonly TContext Context = null;
         private readonly DbSet<TEntity> EntitySet = null;
 
-        public Repository()
-        {
-            this.Context = new TContext();
-            this.EntitySet = this.Context.Set<TEntity>();
-        }
         public Repository(ref TContext _DbContext)
         {
             if (_DbContext != null)
