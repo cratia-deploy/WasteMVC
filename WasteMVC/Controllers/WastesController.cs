@@ -23,15 +23,15 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes
-        public async Task<IActionResult> Index(int? id)
+        public IActionResult Index(int? id)
         {
             var _viewModel = new WastesIndex()
             {
-                Wastes = await _uow.GetRepository<Waste>()
+                Wastes = _uow.GetRepository<Waste>()
                                         .Get()
                                         .Include(w => w.WasteType)
                                         .AsNoTracking()
-                                        .ToListAsync()
+                                        .ToList()
             };
             if (id != null)
             {
@@ -48,15 +48,15 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var waste = await _context.Wastes
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var waste = _context.Wastes
+                .SingleOrDefault(m => m.Id == id);
             if (waste == null)
             {
                 return NotFound();
@@ -78,43 +78,46 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners)
+        public IActionResult Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners)
         {
             waste.WasteType = _uow.GetRepository<WasteType>()
                                         .Get(wt => wt.Id == waste.WasteTypeId)
                                         .FirstOrDefault();
             waste.Partners = new HashSet<Partner>();
             Person _p;
-            int _id = 0;
+            int _id = -1;
             if (selectecPartners != null)
             {
                 foreach (var item in selectecPartners)
                 {
-                    _id = int.Parse(item);
-                    _p = _uow.GetRepository<Person>().Find(_id);
-                    if (_p != null)
+                    if (int.TryParse(item, out _id))
                     {
-                        waste.Partners.Add(
-                            new Partner
-                            {
-                                Person = _p,
-                                Percentage = 0.50,
-                            });
+                        _p = _uow.GetRepository<Person>().Find(_id);
+                        if (_p != null)
+                        {
+                            waste.Partners.Add(
+                                new Partner
+                                {
+                                    Person = _p,
+                                    Percentage = 0.50,
+                                });
+                        }
                     }
                 }
             }
             if (ModelState.IsValid)
             {
-                _context.Add(waste);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                if (_uow.GetRepository<Waste>().Add(waste))
+                {
+                    _uow.Commit();
+                    return RedirectToAction("Index");
+                }
             }
-
             PopulateWasteTypesAndPersons(waste);
             return View(waste);
         }
 
-        private void PopulateWasteTypesAndPersons(Waste Waste)
+        private void PopulateWasteTypesAndPersons(Waste _waste)
         {
             var _wasteType = from wt in _uow.GetRepository<WasteType>().Get()
                              orderby wt.Description
@@ -134,25 +137,35 @@ namespace WasteMVC.Controllers
                     {
                         PersonId = item.Id,
                         FullName = item.FullName,
+                        Assigned = item.BelongsToBusiness(_waste.Id),
+                        Procentage = item.BelongsToBusinessProcentage(_waste.Id),
                     });
             }
             ViewBag._partners = _partners;
         }
 
         // GET: Wastes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var waste = await _context.Wastes.SingleOrDefaultAsync(m => m.Id == id);
-            if (waste == null)
+            List<Waste> _wastes = _uow.GetRepository<Waste>()
+                                            .Get()
+                                            .Where(w => w.Id == id)
+                                            .Include(w => w.WasteType)
+                                            .Include(w => w.Partners)
+                                                .ThenInclude(p => p.Person)
+                                            .ToList();
+            Waste _waste = _wastes.FirstOrDefault();
+            if (_waste == null)
             {
                 return NotFound();
             }
-            return View(waste);
+            PopulateWasteTypesAndPersons(_waste);
+            return View(_waste);
         }
 
         // POST: Wastes/Edit/5
@@ -160,19 +173,61 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DateTime,Weight,Cost,SalePrice,Id")] Waste waste)
+        public IActionResult Edit(int id, [Bind("WasteTypeId,DateTime,Weight,Cost,SalePrice,Id")] Waste waste, string[] selectecPartners)
         {
             if (id != waste.Id)
             {
                 return NotFound();
             }
 
+            waste.WasteType = _uow.GetRepository<WasteType>()
+                                        .Get(wt => wt.Id == waste.WasteTypeId)
+                                        .FirstOrDefault();
+            List<Partner> x = _uow.GetRepository<Partner>()
+                                        .Get(p => p.WasteId == waste.Id)
+                                        .ToList();
+
+
+            if (selectecPartners != null)
+            {
+                int _PersonId = 0;
+                waste.Partners = new HashSet<Partner>(x);
+                HashSet<Partner> _oldPartners = new HashSet<Partner>(x);
+                foreach (var item in selectecPartners)
+                {
+                    if (int.TryParse(item, out _PersonId))
+                    {
+                        if (waste.BelongsToBusiness(_PersonId))
+                        {
+                            //Actualizar porcentaje
+                            waste.Partners.Where(p => p.PersonId == _PersonId).FirstOrDefault().Percentage = 0.33;
+                        }
+                        else
+                        {
+                            //Agregar Nuevo Socio
+                            waste.Partners.Add(
+                                new Partner
+                                {
+                                    Person = _uow.GetRepository<Person>().Find(_PersonId),
+                                    Percentage = 0.77,
+                                }
+                            );
+                        }
+                    }
+                }
+                //Eliminando los viejos socios
+                //_oldPartners.ExceptWith(waste.Partners);
+                //waste.Partners.ExceptWith(_oldPartners);
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(waste);
-                    await _context.SaveChangesAsync();
+                    if (_uow.GetRepository<Waste>().Update(waste))
+                    {
+                        _uow.Commit();
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -191,15 +246,15 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var waste = await _context.Wastes
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var waste =  _context.Wastes
+                .SingleOrDefault(m => m.Id == id);
             if (waste == null)
             {
                 return NotFound();
@@ -211,11 +266,11 @@ namespace WasteMVC.Controllers
         // POST: Wastes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var waste = await _context.Wastes.SingleOrDefaultAsync(m => m.Id == id);
+            var waste =  _context.Wastes.SingleOrDefault(m => m.Id == id);
             _context.Wastes.Remove(waste);
-            await _context.SaveChangesAsync();
+             _context.SaveChanges();
             return RedirectToAction("Index");
         }
 

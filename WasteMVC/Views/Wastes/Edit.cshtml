@@ -11,6 +11,21 @@
         <h4>Waste</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        @if (ViewBag._wasteTypes != null)
+        {
+            <div class="form-group">
+                @Html.LabelFor(x => x.WasteType, new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(
+                (model => model.WasteTypeId),
+                new SelectList(ViewBag._wasteTypes, "Id", "Description"),
+                "--Tipo de Desperdicio--",
+                new { @class = "form-control" }
+                )
+                    <span asp-validation-for="WasteTypeId" class="text-danger"></span>
+                </div>
+            </div>
+        }
         <div class="form-group">
             <label asp-for="DateTime" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -39,7 +54,26 @@
                 <span asp-validation-for="SalePrice" class="text-danger"></span>
             </div>
         </div>
-    <input type="hidden" asp-for="Id" />
+
+        @{
+            if (ViewBag._partners != null)
+            {
+                HashSet<WasteMVC.Models.WastesView.AssignedPartnert> _partners = ViewBag._partners;
+
+                foreach (var item in _partners)
+                {
+                    <input type="checkbox"
+                           name="selectecPartners"
+                           value="@item.PersonId"
+                           @(Html.Raw(@item.Assigned ? "checked=\"checked\"" : "")) />
+                        @item.PersonId @: @item.FullName
+                        @item.Procentage
+                        @:<br />
+                }
+            }
+        }
+
+        <input type="hidden" asp-for="Id" />
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Save" class="btn btn-default" />

@@ -30,5 +30,21 @@ namespace WasteMVC.Models
         public double? SalePrice { get; set; } = 0.0;
 
         public HashSet<Partner> Partners { get; set; }
+
+        internal bool BelongsToBusiness(int _personId)
+        {
+            if ((this.Partners == null) || (_personId <= 0))
+            {
+                return false;
+            }
+            foreach (var item in Partners)
+            {
+                if (item.PersonId == _personId)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

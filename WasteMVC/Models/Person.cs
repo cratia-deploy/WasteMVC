@@ -27,6 +27,11 @@ namespace WasteMVC.Models
             }
         }
 
+        /// <summary>
+        /// Metodo que permite averiguar si una persona pertene a un negocio _wastesdId
+        /// </summary>
+        /// <param name="_wastedId">_wastedId --> Identificador del Negocio</param>
+        /// <returns>bool:true: Si es Socio y bool:false Si no es Socio</returns>
         internal bool BelongsToBusiness(int _wastedId)
         {
             if (this.Business == null || _wastedId <= 0)
@@ -43,6 +48,11 @@ namespace WasteMVC.Models
             return false;
         }
 
+        /// <summary>
+        /// Metodo que permite averiguar el procentaje de participacion de una persona que pertene a un negocio _wastesdId
+        /// </summary>
+        /// <param name="_wastedId">_wastedId --> Identificador del Negocio</param>
+        /// <returns>double:Porcentage y 0.00  Si no es Socio</returns>
         internal double BelongsToBusinessProcentage(int _wastedId)
         {
             if (this.Business == null || _wastedId <= 0)
