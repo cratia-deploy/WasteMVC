@@ -35,7 +35,7 @@ namespace WasteMVC.Data
         private TContext Context = null;
         private readonly Dictionary<Type, object> Repositories = null;
 
-        public UnitOfWork(TContext _context)
+        public UnitOfWork(ref TContext _context)
         {
             if (_context != null)
             {
