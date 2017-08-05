@@ -25,6 +25,7 @@ namespace WasteMVC.Data
             modelBuilder.Entity<Waste>()
                 .HasOne(w => w.WasteType)
                 .WithMany(wt => wt.Wastes)
+                .HasForeignKey(w => w.WasteTypeId)
                 ;
 
             modelBuilder.Entity<Partner>()
@@ -40,6 +41,6 @@ namespace WasteMVC.Data
                 .HasIndex(x => x.Description)
                 .IsUnique()
                 ;
-        }        
+        }
     }
 }

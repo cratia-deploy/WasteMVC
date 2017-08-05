@@ -1,4 +1,4 @@
-@model IEnumerable<WasteMVC.Models.Waste>
+@model WasteMVC.Models.WastesView.WastesIndex
 
 @{
     ViewData["Title"] = "Index";
@@ -12,42 +12,76 @@
 <table class="table">
     <thead>
         <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.DateTime)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Weight)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Cost)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.SalePrice)
-                </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Wastes.FirstOrDefault().DateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Wastes.FirstOrDefault().WasteType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Wastes.FirstOrDefault().Weight)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Wastes.FirstOrDefault().Cost)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Wastes.FirstOrDefault().SalePrice)
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Weight)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cost)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SalePrice)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Wastes)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.DateTime)</td>
+                <td>@Html.DisplayFor(modelItem => item.WasteType.Description)</td>
+                <td>@Html.DisplayFor(modelItem => item.Weight)</td>
+                <td>@Html.DisplayFor(modelItem => item.Cost)</td>
+                <td>@Html.DisplayFor(modelItem => item.SalePrice)</td>
+                <td class="text-center">
+                    <a asp-action="Index" asp-route-id="@item.Id"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a> |
+                    <a asp-action="Details" asp-route-id="@item.Id"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@if (Model.Patners != null)
+{
+    <h3>Socio</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Patners.FirstOrDefault().Person.FirstName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Patners.FirstOrDefault().Person.LastName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Patners.FirstOrDefault().Percentage)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Patners)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Person.FirstName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Person.LastName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Percentage)</td>
+                    <td class="text-center">
+                        <a asp-controller="Partners" asp-action="Edit" asp-route-id="@item.Id"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a> |
+                        <a asp-controller="Partners" asp-action="Details" asp-route-id="@item.Id"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></a> |
+                        <a asp-controller="Partners" asp-action="Delete" asp-route-id="@item.Id"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

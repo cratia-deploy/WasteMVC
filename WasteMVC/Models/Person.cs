@@ -16,5 +16,14 @@ namespace WasteMVC.Models
         public string LastName { get; set; }
 
         public ICollection<Partner> Business { get; set; }
+
+        [Display(Name ="Nombre del Socio")]
+        public string FullName
+        {
+            get
+            {
+                return this.LastName + ", " + this.FirstName;
+            }
+        }
     }
 }
