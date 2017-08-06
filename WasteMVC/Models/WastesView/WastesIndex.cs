@@ -63,6 +63,17 @@ namespace WasteMVC.Models.WastesView
             }
         }
 
+        internal async Task<bool> CreateView(int? page, int cant)
+        {
+            this.View = await PaginatedList<Waste>.CreateAsync(Wastes, page ?? 1, cant);
+            cant = View.Count;
+            if (cant > 0)
+            {
+                return true;
+            }
+            return false;           
+        }
+
         internal void GetPartners(int id)
         {
             Patners = uow.GetRepository<Waste>().Get()

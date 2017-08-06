@@ -31,6 +31,10 @@ namespace WasteMVC.Controllers
             {
                 page = 1;
             }
+            if (sortOrder == "")
+            {
+                sortOrder = "date_asc";
+            }
 
             ViewData["CurrentSort"] = sortOrder;
             ViewData["DateSort"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
@@ -40,7 +44,7 @@ namespace WasteMVC.Controllers
             ViewData["SalePriceSort"] = sortOrder == "sale_asc" ? "sale_desc" : "sale_asc";
             _viewModel.Sort(sortOrder);
 
-            _viewModel.View = await PaginatedList<Waste>.CreateAsync(_viewModel.Wastes,page ?? 1, 6);
+            await _viewModel.CreateView(page,10);
 
             if (id != null)
             {
