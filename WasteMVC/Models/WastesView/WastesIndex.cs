@@ -1,15 +1,27 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WasteMVC.Data;
 
 namespace WasteMVC.Models.WastesView
 {
     public class WastesIndex
     {
+        private readonly UnitOfWork<SystemContext> uow = null;
         public IQueryable<Waste> Wastes { get; set; }
         public IEnumerable<Partner> Patners { get; set; }
         public Data.PaginatedList<Waste> View { get; set; }
+
+        public WastesIndex(SystemContext systemContext)
+        {
+            uow = new UnitOfWork<SystemContext>(systemContext);
+            Wastes = uow.GetRepository<Waste>()
+                .Get()
+                .Include(w => w.WasteType)
+                .AsNoTracking();
+        }
 
         internal void Sort(string sortOrder)
         {
@@ -49,6 +61,16 @@ namespace WasteMVC.Models.WastesView
                     Wastes = Wastes.OrderBy(w => w.DateTime);
                     break;
             }
+        }
+
+        internal void GetPartners(int id)
+        {
+            Patners = uow.GetRepository<Waste>().Get()
+                         .Where(w => w.Id == id)
+                         .Include(w => w.Partners)
+                             .ThenInclude(p => p.Person)
+                         .FirstOrDefault()
+                         .Partners;
         }
     }
 }

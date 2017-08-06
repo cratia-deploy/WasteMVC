@@ -25,13 +25,7 @@ namespace WasteMVC.Controllers
         // GET: Wastes
         public async Task<IActionResult> Index(int? id, int? page, string sortOrder = "")
         {
-            var _viewModel = new WastesIndex()
-            {
-                Wastes = _uow.GetRepository<Waste>()
-                                .Get()
-                                .Include(w => w.WasteType)
-                                .AsNoTracking()
-            };
+            var _viewModel = new WastesIndex(_context);
 
             if ((page == null) && (page.HasValue))
             {
@@ -51,13 +45,7 @@ namespace WasteMVC.Controllers
             if (id != null)
             {
                 ViewData["PartnersID"] = id.Value;
-                _viewModel.Patners = _uow.GetRepository<Waste>().Get()
-                                                .Where(w => w.Id == id.Value)
-                                                .Include(w => w.Partners)
-                                                    .ThenInclude(p => p.Person)
-                                                .FirstOrDefault()
-                                                .Partners;
-
+                _viewModel.GetPartners(id.Value);
             }
             return View(_viewModel);
         }
