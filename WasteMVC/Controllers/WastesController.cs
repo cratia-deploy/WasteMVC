@@ -23,7 +23,7 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes
-        public async Task<IActionResult> Index(int? id, int? page, string sortOrder = "")
+        public async Task<IActionResult> Index(int? id, int? page, string sortOrder = "", string currentFilter = "")
         {
             var _viewModel = new WastesIndex(_context);
 
@@ -36,14 +36,16 @@ namespace WasteMVC.Controllers
                 sortOrder = "date_asc";
             }
 
+            ViewData["CurrentFilter"] = currentFilter;
             ViewData["CurrentSort"] = sortOrder;
             ViewData["DateSort"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
             ViewData["WasteTypeSort"] = sortOrder == "wt_asc" ? "wt_desc" : "wt_asc"; ;
             ViewData["WeightSort"] = sortOrder == "weight_asc" ? "weight_desc" : "weight_asc"; ;
             ViewData["CostSort"] = sortOrder == "cost_asc" ? "cost_desc" : "cost_asc"; ;
             ViewData["SalePriceSort"] = sortOrder == "sale_asc" ? "sale_desc" : "sale_asc";
-            _viewModel.Sort(sortOrder);
 
+            _viewModel.Filter(currentFilter);
+            _viewModel.Sort(sortOrder);
             await _viewModel.CreateView(page,10);
 
             if (id != null)

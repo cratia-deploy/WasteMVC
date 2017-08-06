@@ -63,6 +63,11 @@ namespace WasteMVC.Models.WastesView
             }
         }
 
+        internal void Filter(string currentFilter)
+        {
+            Wastes = this.Wastes.Where(w => w.WasteType.Description.Contains(currentFilter));
+        }
+
         internal async Task<bool> CreateView(int? page, int cant)
         {
             this.View = await PaginatedList<Waste>.CreateAsync(Wastes, page ?? 1, cant);
@@ -71,7 +76,7 @@ namespace WasteMVC.Models.WastesView
             {
                 return true;
             }
-            return false;           
+            return false;
         }
 
         internal void GetPartners(int id)
