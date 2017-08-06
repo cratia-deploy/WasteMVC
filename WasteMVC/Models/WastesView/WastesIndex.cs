@@ -7,7 +7,8 @@ namespace WasteMVC.Models.WastesView
 {
     public class WastesIndex
     {
-        public IEnumerable<Waste> Wastes { get; set; }
+        public IQueryable<Waste> Wastes { get; set; }
         public IEnumerable<Partner> Patners { get; set; }
+        public Data.PaginatedList<Waste> View { get; set; }
     }
 }

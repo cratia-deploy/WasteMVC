@@ -31,7 +31,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Wastes)
+        @foreach (var item in Model.View)
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.DateTime)</td>
@@ -85,3 +85,27 @@
         </tbody>
     </table>
 }
+
+@{
+    var prevDisabled = !Model.View.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.View.HasNextPage ? "disabled" : "";
+}
+
+<div class="center-block text-center">
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-page="@(Model.View.PageIndex - 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-id=""
+       class="btn btn-default @prevDisabled">
+        Previous
+    </a>
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-page="@(Model.View.PageIndex + 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-id=""
+       class="btn btn-default @nextDisabled">
+        Next
+    </a>
+</div>

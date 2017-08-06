@@ -14,7 +14,7 @@ namespace WasteMVC.Controllers
     public class WastesController : Controller
     {
         private readonly SystemContext _context = null;
-        UnitOfWork<SystemContext> _uow = null;
+        private readonly UnitOfWork<SystemContext> _uow = null;
 
         public WastesController(SystemContext context)
         {
@@ -23,16 +23,23 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes
-        public async Task<IActionResult> Index(int? id)
+        public async Task<IActionResult> Index(int? id, int? page)
         {
             var _viewModel = new WastesIndex()
             {
-                Wastes = await _uow.GetRepository<Waste>()
-                                        .Get()
-                                        .Include(w => w.WasteType)
-                                        .AsNoTracking()
-                                        .ToListAsync()
+                Wastes = _uow.GetRepository<Waste>()
+                                .Get()
+                                .Include(w => w.WasteType)
+                                .AsNoTracking()
             };
+
+            if (page == null)
+            {
+                page = 1;
+            }
+
+            _viewModel.View = await PaginatedList<Waste>.CreateAsync(_viewModel.Wastes, page ?? 1, 5);
+            
             if (id != null)
             {
                 ViewData["PartnersID"] = id.Value;
