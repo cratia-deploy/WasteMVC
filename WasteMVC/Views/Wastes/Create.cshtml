@@ -1,26 +1,29 @@
 @model WasteMVC.Models.Waste
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Desperdicio/New";
 }
 
-<h2>Create</h2>
+<h2>Nuevo Desperdicio</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
         <h4>Waste</h4>
         <hr />
-        <div class="form-group">
-            @Html.LabelFor(x => x.WasteType, new { @class = "col-md-2 control-label" })
-            <div class="col-md-10">
-                @Html.DropDownListFor(
+        @if (ViewBag._wasteTypes != null)
+            {
+            <div class="form-group">
+                @Html.LabelFor(x => x.WasteType, new { @class = "col-md-2 control-label" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(
                 (model => model.WasteTypeId),
                 new SelectList(ViewBag._wasteTypes, "Id", "Description"),
                 "--Tipo de Desperdicio--",
                 new { @class = "form-control" }
                 )
-                <span asp-validation-for="WasteTypeId" class="text-danger"></span>
+                    <span asp-validation-for="WasteTypeId" class="text-danger"></span>
+                </div>
             </div>
-        </div>
+        }
         <div class="form-group">
             <label asp-for="DateTime" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -51,21 +54,47 @@
         </div>
 
         @{
-            if (ViewBag._partners != null)
+            @if (ViewBag._partners != null)
             {
                 HashSet<WasteMVC.Models.WastesView.AssignedPartnert> _partners = ViewBag._partners;
-
-                foreach (var item in _partners)
-                {
-                    <input type="checkbox"
-                           name="selectecPartners"
-                           value="@item.PersonId" 
-                           @(Html.Raw(@item.Assigned ? "checked=\"checked\"" : "")) />
-                        @item.PersonId @: @item.FullName
-                }
+                <br />
+                <h4>Socios</h4>
+                <hr />
+                <table class="table table-hover table-striped ">
+                    <thead>
+                        <tr>
+                            <td></td>
+                            <td>Full Name</td>
+                            <td>Procentaje</td>
+                        </tr>
+                    </thead>
+                    @foreach (var item in _partners)
+                    {
+                        <tr>
+                            <td>
+                                <input class="from-control"
+                                       type="checkbox"
+                                       name="selectecPartners"
+                                       value="@item.PersonId"
+                                       @(Html.Raw(@item.Assigned ? "checked=\"checked\"" : "")) />
+                            </td>
+                            <td>
+                                <p class="form-control-static">@item.FullName</p>
+                            </td>
+                            <td>
+                                <input class="from-control"
+                                       type="number"
+                                       name="values_Porcentaje"
+                                       value="@item.Procentage" />
+                                <input class="hidden from-control"
+                                       name="id_persons"
+                                       value="@item.PersonId" />
+                            </td>
+                        </tr>
+                    }
+                </table>
             }
         }
-
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />

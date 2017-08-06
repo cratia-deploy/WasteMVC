@@ -87,11 +87,22 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners)
+        public async Task<IActionResult> Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners, string [] id_persons, string [] values_Porcentaje)
         {
             waste.WasteType = _uow.GetRepository<WasteType>()
                                         .Get(wt => wt.Id == waste.WasteTypeId)
                                         .FirstOrDefault();
+
+            //Asociando PersonId -> Porcentage
+            Dictionary<int, double> valuesIdPorcentage = new Dictionary<int, double>();
+            int i = 0;
+            foreach (var item in id_persons)
+            {
+                int id = int.Parse(item);
+                double porcentaje = double.Parse(values_Porcentaje[i++])/100.00;
+                valuesIdPorcentage.Add(id, porcentaje);
+            }
+            //
             waste.Partners = new HashSet<Partner>();
             Person _p;
             int _id = 0;
@@ -107,7 +118,7 @@ namespace WasteMVC.Controllers
                             new Partner
                             {
                                 Person = _p,
-                                Percentage = 0.50,
+                                Percentage = valuesIdPorcentage[_id],
                             });
                     }
                 }
@@ -131,7 +142,7 @@ namespace WasteMVC.Controllers
             ViewBag._wasteTypes = _wasteType.AsNoTracking().ToList();
 
             var _persons = from p in _uow.GetRepository<Person>().Get()
-                           orderby p.FirstName
+                           orderby p.Id
                            select p;
             ViewBag._persons = _persons.AsNoTracking().ToList();
 
