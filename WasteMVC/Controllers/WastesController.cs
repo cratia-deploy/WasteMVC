@@ -23,7 +23,7 @@ namespace WasteMVC.Controllers
         }
 
         // GET: Wastes
-        public async Task<IActionResult> Index(int? id, int? page)
+        public async Task<IActionResult> Index(int? id, int? page, string sortOrder = "")
         {
             var _viewModel = new WastesIndex()
             {
@@ -33,13 +33,21 @@ namespace WasteMVC.Controllers
                                 .AsNoTracking()
             };
 
-            if (page == null)
+            if ((page == null) && (page.HasValue))
             {
                 page = 1;
             }
 
-            _viewModel.View = await PaginatedList<Waste>.CreateAsync(_viewModel.Wastes, page ?? 1, 5);
-            
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["DateSort"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+            ViewData["WasteTypeSort"] = sortOrder == "wt_asc" ? "wt_desc" : "wt_asc"; ;
+            ViewData["WeightSort"] = sortOrder == "weight_asc" ? "weight_desc" : "weight_asc"; ;
+            ViewData["CostSort"] = sortOrder == "cost_asc" ? "cost_desc" : "cost_asc"; ;
+            ViewData["SalePriceSort"] = sortOrder == "sale_asc" ? "sale_desc" : "sale_asc";
+            _viewModel.Sort(sortOrder);
+
+            _viewModel.View = await PaginatedList<Waste>.CreateAsync(_viewModel.Wastes,page ?? 1, 6);
+
             if (id != null)
             {
                 ViewData["PartnersID"] = id.Value;
