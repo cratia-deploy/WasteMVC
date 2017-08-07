@@ -154,7 +154,7 @@ namespace WasteMVC.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Error::Creando El Desperdicio. No se puedo Guarda en la Base de Datos.");
+                        ModelState.AddModelError("", "Error::Creando El Desperdicio. No se puedo Guardar en la Base de Datos.");
                     }
                 }
             }
@@ -285,13 +285,26 @@ namespace WasteMVC.Controllers
                 {
                     if (_uow.GetRepository<Waste>().Update(waste))
                     {
-                        await _uow.CommitAsync();
-                        //Eliminando Los viejos Socios
-                        foreach (var item in oldPartners)
+                        int count = await _uow.CommitAsync();
+                        if (count > 0)
                         {
-                            _uow.GetRepository<Partner>().Delete(item.Id);
+                            //Eliminando Los viejos Socios
+                            foreach (var item in oldPartners)
+                            {
+                                _uow.GetRepository<Partner>().Delete(item.Id);
+                            }
+                            await _uow.CommitAsync();
+                            return RedirectToAction("Index");
                         }
-                        await _uow.CommitAsync();
+                        else
+                        {
+                            ModelState.AddModelError("", "Error::Actualizando El Desperdicio. No se puedo Guardar en la Base de Datos.");
+                        }
+
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Error::Actualizando El Desperdicio. No se puedo Guardar en la Base de Datos.");
                     }
                 }
                 catch (DbUpdateConcurrencyException)
@@ -305,7 +318,6 @@ namespace WasteMVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Index");
             }
             PopulateWasteTypesAndPersons(waste, false);
             return View(waste);
