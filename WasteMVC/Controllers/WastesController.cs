@@ -65,13 +65,17 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var waste = await _context.Wastes
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var waste = await _uow.GetRepository<Waste>()
+                .Get(w => w.Id == id)
+                .Include(w => w.WasteType)
+                .Include(w => w.Partners)
+                    .ThenInclude(pt => pt.Person)
+                .FirstOrDefaultAsync();
+
             if (waste == null)
             {
                 return NotFound();
             }
-
             return View(waste);
         }
 

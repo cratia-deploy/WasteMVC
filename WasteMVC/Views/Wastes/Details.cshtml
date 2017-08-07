@@ -11,6 +11,12 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
+            @Html.DisplayNameFor(model => model.WasteType)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.WasteType.Description)
+        </dd>
+        <dt>
             @Html.DisplayNameFor(model => model.DateTime)
         </dt>
         <dd>
@@ -34,6 +40,20 @@
         <dd>
             @Html.DisplayFor(model => model.SalePrice)
         </dd>
+        <dt>Socios</dt>
+        <dd></dd>
+        <dt>
+            @foreach (var item in Model.Partners)
+            {
+
+                <dt>Nombre</dt>
+                <dd>@item.Person.FullName</dd>
+                <dt>Porcentaje</dt>
+                <dd>
+                    @Html.DisplayFor(modelItem => item.Percentage)
+                </dd>
+            }
+        </dl>
     </dl>
 </div>
 <div>
