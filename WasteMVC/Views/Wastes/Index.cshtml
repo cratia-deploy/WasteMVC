@@ -132,8 +132,36 @@
        asp-route-currentFilter="@ViewData["CurrentFilter"]"
        asp-route-id=""
        class="btn btn-default @prevDisabled">
-        Previous
+        <
     </a>
+    @for (int i = 1; i <= Model.View.TotalPages; i++)
+    {
+        if (((i - 5) < ViewBag.Page) && (ViewBag.Page < (i + 5)))
+        {
+            <a asp-controller="Wastes"
+               asp-action="Index"
+               asp-route-sortOrder="@ViewData["CurrentSort"]"
+               asp-route-page="@(i)"
+               asp-route-currentFilter="@ViewData["CurrentFilter"]"
+               asp-route-id=""
+               class="btn btn-default">
+                @i
+            </a>
+        }
+        else if (i % 5 == 0 || i == 1)
+        {
+            <a asp-controller="Wastes"
+               asp-action="Index"
+               asp-route-sortOrder="@ViewData["CurrentSort"]"
+               asp-route-page="@(i)"
+               asp-route-currentFilter="@ViewData["CurrentFilter"]"
+               asp-route-id=""
+               class="btn btn-default">
+                @i
+            </a>
+        }
+    }
+
     <a asp-controller="Wastes"
        asp-action="Index"
        asp-route-sortOrder="@ViewData["CurrentSort"]"
@@ -141,6 +169,6 @@
        asp-route-currentFilter="@ViewData["CurrentFilter"]"
        asp-route-id=""
        class="btn btn-default @nextDisabled">
-        Next
+        >
     </a>
 </div>

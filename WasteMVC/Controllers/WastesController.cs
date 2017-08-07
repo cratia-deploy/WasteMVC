@@ -37,6 +37,7 @@ namespace WasteMVC.Controllers
                 sortOrder = "date_asc";
             }
 
+            ViewBag.Page = page;
             ViewData["CurrentFilter"] = currentFilter;
             ViewData["CurrentSort"] = sortOrder;
             ViewData["DateSort"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
@@ -47,7 +48,7 @@ namespace WasteMVC.Controllers
 
             _viewModel.Filter(currentFilter);
             _viewModel.Sort(sortOrder);
-            await _viewModel.CreateView(page, 10);
+            await _viewModel.CreateView(page, 7);
 
             if (id != null)
             {
