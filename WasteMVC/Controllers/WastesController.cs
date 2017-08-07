@@ -334,14 +334,16 @@ namespace WasteMVC.Controllers
             {
                 return NotFound();
             }
-
-            var waste = await _context.Wastes
-                .SingleOrDefaultAsync(m => m.Id == id);
+            var waste = await _uow.GetRepository<Waste>()
+                .Get(w => w.Id == id)
+                .Include(w => w.WasteType)
+                .Include(w => w.Partners)
+                    .ThenInclude(pt => pt.Person)
+                .FirstOrDefaultAsync();
             if (waste == null)
             {
                 return NotFound();
             }
-
             return View(waste);
         }
 
@@ -350,15 +352,25 @@ namespace WasteMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var waste = await _context.Wastes.SingleOrDefaultAsync(m => m.Id == id);
-            _context.Wastes.Remove(waste);
-            await _context.SaveChangesAsync();
+            List<Partner> pts = await _uow.GetRepository<Partner>()
+                                            .Get(p => p.WasteId == id)
+                                            .ToListAsync();
+            foreach (var item in pts)
+            {
+                _uow.GetRepository<Partner>().Delete(item.Id);
+            }
+            await _uow.CommitAsync();
+
+            if (_uow.GetRepository<Waste>().Delete(id))
+            {
+                await _uow.CommitAsync();
+            }
             return RedirectToAction("Index");
         }
 
         private bool WasteExists(int id)
         {
-            return _context.Wastes.Any(e => e.Id == id);
+            return _uow.GetRepository<Waste>().Any(e => e.Id == id);
         }
     }
 }
