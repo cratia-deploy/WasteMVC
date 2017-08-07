@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using WasteMVC.Data;
 using WasteMVC.Models;
 using WasteMVC.Models.WastesView;
+using System.Text;
 
 namespace WasteMVC.Controllers
 {
@@ -46,7 +47,7 @@ namespace WasteMVC.Controllers
 
             _viewModel.Filter(currentFilter);
             _viewModel.Sort(sortOrder);
-            await _viewModel.CreateView(page,10);
+            await _viewModel.CreateView(page, 10);
 
             if (id != null)
             {
@@ -78,7 +79,7 @@ namespace WasteMVC.Controllers
         public IActionResult Create()
         {
             Waste _new_waste = new Waste();
-            PopulateWasteTypesAndPersons(_new_waste);
+            PopulateWasteTypesAndPersons(_new_waste, true);
             return View();
         }
 
@@ -87,7 +88,7 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners, string [] id_persons, string [] values_Porcentaje)
+        public async Task<IActionResult> Create([Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners, string[] id_persons, string[] values_Porcentaje)
         {
             waste.WasteType = _uow.GetRepository<WasteType>()
                                         .Get(wt => wt.Id == waste.WasteTypeId)
@@ -99,7 +100,7 @@ namespace WasteMVC.Controllers
             foreach (var item in id_persons)
             {
                 int id = int.Parse(item);
-                double porcentaje = double.Parse(values_Porcentaje[i++])/100.00;
+                double porcentaje = double.Parse(values_Porcentaje[i++]) / 100.00;
                 valuesIdPorcentage.Add(id, porcentaje);
             }
             //
@@ -130,11 +131,11 @@ namespace WasteMVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            PopulateWasteTypesAndPersons(waste);
+            PopulateWasteTypesAndPersons(waste, true);
             return View(waste);
         }
 
-        private void PopulateWasteTypesAndPersons(Waste Waste)
+        private void PopulateWasteTypesAndPersons(Waste waste, bool isNew)
         {
             var _wasteType = from wt in _uow.GetRepository<WasteType>().Get()
                              orderby wt.Description
@@ -142,8 +143,12 @@ namespace WasteMVC.Controllers
             ViewBag._wasteTypes = _wasteType.AsNoTracking().ToList();
 
             var _persons = from p in _uow.GetRepository<Person>().Get()
-                           orderby p.Id
                            select p;
+            if (isNew == false)
+            {
+                _persons = _persons.Include(p => p.Business);
+            }
+            _persons = _persons.OrderBy(p => p.LastName);
             ViewBag._persons = _persons.AsNoTracking().ToList();
 
             HashSet<AssignedPartnert> _partners = new HashSet<AssignedPartnert>();
@@ -154,6 +159,8 @@ namespace WasteMVC.Controllers
                     {
                         PersonId = item.Id,
                         FullName = item.FullName,
+                        Assigned = item.BelongsToBusiness(waste.Id),
+                        Procentage = item.BelongsToBusinessProcentage(waste.Id) * 100.00,
                     });
             }
             ViewBag._partners = _partners;
@@ -167,11 +174,16 @@ namespace WasteMVC.Controllers
                 return NotFound();
             }
 
-            var waste = await _context.Wastes.SingleOrDefaultAsync(m => m.Id == id);
+            Waste waste = await _uow.GetRepository<Waste>()
+                                    .Get(w => w.Id == id)
+                                    .Include(w => w.WasteType)
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync();
             if (waste == null)
             {
                 return NotFound();
             }
+            PopulateWasteTypesAndPersons(waste, false);
             return View(waste);
         }
 
@@ -180,19 +192,80 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DateTime,Weight,Cost,SalePrice,Id")] Waste waste)
+        public async Task<IActionResult> Edit(int id, [Bind("DateTime,Weight,Cost,SalePrice,Id,WasteTypeId")] Waste waste, string[] selectecPartners, string[] id_persons, string[] values_Porcentaje)
         {
             if (id != waste.Id)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
+            waste.WasteType = _uow.GetRepository<WasteType>().Find(waste.WasteTypeId);
+            //Cargando Antiguos Valores de Socios
+            HashSet<Partner> oldPartners = _uow.GetRepository<Waste>()
+                                                .Get(w => w.Id == waste.Id)
+                                                .Include(w => w.Partners)
+                                                .AsNoTracking()
+                                                .FirstOrDefault()
+                                                .Partners;
+            waste.Partners = new HashSet<Partner>();
+            double totalporcentage = 0.0;
+            if (selectecPartners != null)
+            {
+                //Asociando PersonId -> Porcentage
+                Dictionary<int, double> valuesIdPorcentage = new Dictionary<int, double>();
+                int i = 0;
+                int personId = 0;
+                foreach (var item in id_persons)
+                {
+                    personId = int.Parse(item);
+                    double porcentaje = double.Parse(values_Porcentaje[i++]) / 100.00;
+                    valuesIdPorcentage.Add(personId, porcentaje);
+                }
+                //Agregando Socios 
+                foreach (var item in selectecPartners)
+                {
+                    personId = int.Parse(item);
+                    totalporcentage += valuesIdPorcentage[personId];
+                    waste.Partners.Add(new Partner
+                    {
+                        Percentage = valuesIdPorcentage[personId],
+                        PersonId = personId,
+                        Person = _uow.GetRepository<Person>().Find(personId),
+                    });
+                }
+            }
+            bool band = true;
+            if (waste.Partners.Count <= 0)
+            {
+                band = false;
+                ModelState.AddModelError("", "Error::Validadndo Cantidad de Socio." +
+                                            "\nNo se puede guardar los cambios." +
+                                            "\nDebe seleccionar al menos un socio.");
+            }
+            if (totalporcentage != 1.00)
+            {
+                band = false;
+                string errorMessage = "::Error::Validando la Participacion de los Socios." +
+                                            " No se puede guardar los cambios." +
+                                            " Total Participacion: " +
+                                            totalporcentage.ToString("P2") + "," +
+                                            " Falta: " +
+                                            (1.00 - totalporcentage).ToString("P2");
+                ModelState.AddModelError("", errorMessage);
+            }
+            if (ModelState.IsValid && band == true)
             {
                 try
                 {
-                    _context.Update(waste);
-                    await _context.SaveChangesAsync();
+                    if (_uow.GetRepository<Waste>().Update(waste))
+                    {
+                        await _uow.CommitAsync();
+                        //Eliminando Los viejos Socios
+                        foreach (var item in oldPartners)
+                        {
+                            _uow.GetRepository<Partner>().Delete(item.Id);
+                        }
+                        await _uow.CommitAsync();
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -207,6 +280,7 @@ namespace WasteMVC.Controllers
                 }
                 return RedirectToAction("Index");
             }
+            PopulateWasteTypesAndPersons(waste, false);
             return View(waste);
         }
 
