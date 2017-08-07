@@ -93,7 +93,6 @@ namespace WasteMVC.Controllers
             waste.WasteType = _uow.GetRepository<WasteType>()
                                         .Get(wt => wt.Id == waste.WasteTypeId)
                                         .FirstOrDefault();
-
             //Asociando PersonId -> Porcentage
             Dictionary<int, double> valuesIdPorcentage = new Dictionary<int, double>();
             int i = 0;
@@ -103,16 +102,17 @@ namespace WasteMVC.Controllers
                 double porcentaje = double.Parse(values_Porcentaje[i++]) / 100.00;
                 valuesIdPorcentage.Add(id, porcentaje);
             }
-            //
             waste.Partners = new HashSet<Partner>();
             Person _p;
             int _id = 0;
+            double totalporcentage = 0.0;
             if (selectecPartners != null)
             {
                 foreach (var item in selectecPartners)
                 {
                     _id = int.Parse(item);
                     _p = _uow.GetRepository<Person>().Find(_id);
+                    totalporcentage += valuesIdPorcentage[_id];
                     if (_p != null)
                     {
                         waste.Partners.Add(
@@ -124,13 +124,40 @@ namespace WasteMVC.Controllers
                     }
                 }
             }
-            if (ModelState.IsValid)
+            bool band = true;
+            if (waste.Partners.Count <= 0)
             {
-                _context.Add(waste);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                band = false;
+                ModelState.AddModelError("", "Error::Validadndo Cantidad de Socio." +
+                                            "\nNo se puede guardar los cambios." +
+                                            "\nDebe seleccionar al menos un socio.");
             }
-
+            if (totalporcentage != 1.00)
+            {
+                band = false;
+                string errorMessage = "Error::Validando la Participacion de los Socios." +
+                                            " No se puede guardar los cambios." +
+                                            " Total Participacion: " +
+                                            totalporcentage.ToString("P2") + "," +
+                                            " Falta: " +
+                                            (1.00 - totalporcentage).ToString("P2");
+                ModelState.AddModelError("", errorMessage);
+            }
+            if (ModelState.IsValid && band == true)
+            {
+                if (_uow.GetRepository<Waste>().Add(waste))
+                {
+                    int count = await _uow.CommitAsync();
+                    if (count > 0)
+                    {
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Error::Creando El Desperdicio. No se puedo Guarda en la Base de Datos.");
+                    }
+                }
+            }
             PopulateWasteTypesAndPersons(waste, true);
             return View(waste);
         }
