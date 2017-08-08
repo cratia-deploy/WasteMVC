@@ -42,7 +42,7 @@ namespace WasteMVC.Controllers
             {
                 page = 1;
             }
-            if(wasteType == null)
+            if (wasteType == null)
             {
                 wasteType = string.Empty;
             }
@@ -77,6 +77,13 @@ namespace WasteMVC.Controllers
                 return RedirectToAction("Index");
             await homeEditView.CreateView(1);
             return View(homeEditView);
+        }
+
+        [HttpGet]
+        [ActionName("Details")]
+        public IActionResult Details()
+        {
+            return View();
         }
 
         public IActionResult About()

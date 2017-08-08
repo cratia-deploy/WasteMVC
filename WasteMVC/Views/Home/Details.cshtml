@@ -1,0 +1,209 @@
+@model WasteMVC.Models.HomeView.HomeEditView
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h3>Desperdicio</h3>
+<h5>Dia: @Model.DateTime.ToString("dd/MM/yyy")</h5>
+@if (Model.WasteType != string.Empty)
+{
+    <h5>Tipo: @Model.WasteType</h5>
+}
+<hr />
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Fecha
+            </th>
+            <th>
+                Tipo de Desperdicio
+            </th>
+            <th>
+                Costo
+            </th>
+            <th>
+                Precio de Compra
+            </th>
+            <th>
+                Precio de Venta
+            </th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.View != null)
+        {
+            @foreach (var item1 in Model.View)
+            {
+                <tr>
+                    <td>
+                        @item1.DateTime.ToString("dd/MM/yyyy")
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item1.WasteType.Description)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item1.Weight)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item1.Cost)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item1.SalePrice)
+                    </td>
+                    <td>
+                        <a asp-controller="Home"
+                           asp-action="Edit"
+                           asp-route-day="@ViewData["Day"]"
+                           asp-route-wasteType="@ViewData["WasteType"]"
+                           asp-route-page="@(Model.View.PageIndex)"
+                           asp-route-partnersID="@item1.Id">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                        </a> |
+                        <a asp-controller="Wastes"
+                           asp-action="Edit"
+                           asp-route-id="@item1.Id">
+                            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                        </a> |
+                        <a asp-controller="Wastes"
+                           asp-action="Details"
+                           asp-route-id="@item1.Id">
+                            <span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span>
+                        </a> |
+                        <a asp-controller="Wastes"
+                           asp-action="Delete"
+                           asp-route-id="@item1.Id">
+                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                </tr>
+                @if (Model.Partners != null && ViewBag.PartnersID == item1.Id)
+                {
+                    @foreach (var item2 in Model.Partners)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item2.Person.FirstName)</td>
+                            <td>@Html.DisplayFor(modelItem => item2.Person.LastName)</td>
+                            <td>@Html.DisplayFor(modelItem => item2.Percentage)</td>
+                            <td class="text-center">
+                                <a asp-controller="Partners" asp-action="Edit" asp-route-id="@item2.Id"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a> |
+                                <a asp-controller="Partners" asp-action="Details" asp-route-id="@item2.Id"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></a> |
+                                <a asp-controller="Partners" asp-action="Delete" asp-route-id="@item2.Id"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+        }
+    </tbody>
+</table>
+<hr />
+<form asp-action="Edit">
+    @if (Model.View != null)
+    {
+        @foreach (var item1 in Model.View)
+        {
+            <input type="hidden" name="wastesID" value="@item1.Id" class="form-control" />
+        }
+    }
+    <input type="hidden" name="day" value="@Model.DateTime.ToString("dd/MM/yyy")" class="form-control" />
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Cost2" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Cost2" class="form-control" />
+                <span asp-validation-for="Cost2" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="SalePrice2" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="SalePrice2" class="form-control" />
+                <span asp-validation-for="SalePrice2" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Decrease" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Decrease" class="form-control" />
+                <span asp-validation-for="Decrease" class="text-danger"></span>
+            </div>
+        </div>
+        <input type="hidden" asp-for="DateTime" />
+        <input type="hidden" asp-for="WasteType" />
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-day="@ViewData["Day"]"
+                   asp-route-page="1"
+                   class="btn btn-default">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                </a>
+                <input type="submit" value="Edit" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+<hr />
+
+@if (Model.View != null)
+{
+
+    var prevDisabled = !Model.View.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.View.HasNextPage ? "disabled" : "";
+
+    <div class="center-block text-center">
+        <a asp-controller="Home"
+           asp-action="Edit"
+           asp-route-day="@ViewData["Day"]"
+           asp-route-wasteType="@ViewData["WasteType"]"
+           asp-route-page="@(Model.View.PageIndex - 1)"
+           asp-route-id=""
+           class="btn btn-default @prevDisabled">
+            <
+        </a>
+        @for (int i = 1; i <= Model.View.TotalPages; i++)
+        {
+            if (((i - 5) < ViewBag.Page) && (ViewBag.Page < (i + 5)))
+            {
+                <a asp-controller="Home"
+                   asp-action="Edit"
+                   asp-route-day="@ViewData["Day"]"
+                   asp-route-wasteType="@ViewData["WasteType"]"
+                   asp-route-page="@(i)"
+                   asp-route-id=""
+                   class="btn btn-default">
+                    @i
+                </a>
+            }
+            else if (i % 5 == 0 || i == 1)
+            {
+                <a asp-controller="Home"
+                   asp-action="Edit"
+                   asp-route-page="@(i)"
+                   asp-route-id=""
+                   class="btn btn-default">
+                    @i
+                </a>
+            }
+        }
+
+        <a asp-controller="Home"
+           asp-action="Edit"
+           asp-route-day="@ViewData["Day"]"
+           asp-route-wasteType="@ViewData["WasteType"]"
+           asp-route-page="@(Model.View.PageIndex + 1)"
+           asp-route-id=""
+           class="btn btn-default @nextDisabled">
+            >
+        </a>
+    </div>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
