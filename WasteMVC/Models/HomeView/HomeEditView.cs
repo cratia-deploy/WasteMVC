@@ -18,7 +18,7 @@ namespace WasteMVC.Models.HomeView
 
         public List<int> WastesID { get; private set; } = null;
         public string WasteType { get; private set; } = string.Empty;
-        public DateTime DateTime { get; set; } = DateTime.MinValue.Date;
+        public DateTime DateTime { get; private set; } = DateTime.MinValue.Date;
 
         [Required]
         [Display(Name = "Costo Final")]
@@ -35,28 +35,44 @@ namespace WasteMVC.Models.HomeView
         public HomeEditView()
         { }
 
-        public HomeEditView(SystemContext context, int? partnersID, string day = "", string wasteType = "")
+        public HomeEditView(SystemContext context, int? partnersID, string day = "", string _WasteType = "")
         {
             uow = new UnitOfWork<SystemContext>(context);
-            if (day != "")
+            SetDateTime(day);
+            SetWastes(this.DateTime, _WasteType);
+            SetWastesID();
+            SetPartners(partnersID);
+            if (Wastes != null)
             {
-                string[] values = day.Split('-');
-                int _day = int.Parse(values[0]);
-                int _month = int.Parse(values[1]);
-                int _year = int.Parse(values[2]);
-                DateTime = new DateTime(_year, _month, _day);
+                Waste item = Wastes.LastOrDefault();
+                if (item != null)
+                {
+                    if (item.Cost2.HasValue)
+                    {
+                        Cost2 = item.Cost2.Value;
+                    }
+                    if (item.SalePrice2.HasValue)
+                    {
+                        SalePrice2 = item.SalePrice2.Value;
+                    }
+                    if (item.Decrease.HasValue)
+                    {
+                        Decrease = item.Decrease.Value;
+                    }
+                }
             }
-            Wastes = uow.GetRepository<Waste>()
-                        .Get(w => w.DateTime.Date == DateTime.Date)
-                        .Include(w => w.WasteType)
-                        .AsNoTracking();
-            if (wasteType != "")
+        }
+
+        private void SetWastesID()
+        {
+            if (Wastes != null)
             {
-                Wastes = Wastes.Where(w => w.WasteType.Description == wasteType)
-                                .AsNoTracking();
-                WasteType = wasteType;
+                WastesID = Wastes.Select(w => w.Id).ToList();
             }
-            WastesID = Wastes.Select(w => w.Id).ToList();
+        }
+
+        private void SetPartners(int? partnersID)
+        {
             if (partnersID != null)
             {
                 Partners = uow.GetRepository<Partner>()
@@ -64,20 +80,45 @@ namespace WasteMVC.Models.HomeView
                                 .Include(p => p.Person)
                                 .AsNoTracking();
             }
-            Waste item = Wastes.LastOrDefault();
-            if (item != null)
+        }
+
+        private void SetWastes(DateTime _DateTime, string _wasteType)
+        {
+            if (uow.GetRepository<Waste>().Any(w => w.DateTime.Date == _DateTime.Date))
             {
-                if (item.Cost2.HasValue)
+                Wastes = uow.GetRepository<Waste>()
+                            .Get(w => w.DateTime.Date == _DateTime.Date)
+                            .Include(w => w.WasteType)
+                            .AsNoTracking();
+                if ((_wasteType != "") && (Wastes.Any(w => w.WasteType.Description == _wasteType)))
                 {
-                    Cost2 = item.Cost2.Value;
+                    Wastes = Wastes.Where(w => w.WasteType.Description == _wasteType)
+                                    .AsNoTracking();
+                    WasteType = _wasteType;
                 }
-                if (item.SalePrice2.HasValue)
+            }
+            else
+            {
+                Wastes = null;
+            }
+        }
+
+        private void SetDateTime(string day)
+        {
+            if (day != null && day != "" && day.Length == 10)
+            {
+                string[] values = day.Split(new char[] { '-', '/', '.' },3);
+                if (values.Length == 3)
                 {
-                    SalePrice2 = item.SalePrice2.Value;
+                    int _day = int.Parse(values[0]);
+                    int _month = int.Parse(values[1]);
+                    int _year = int.Parse(values[2]);
+                    DateTime = new DateTime(_year, _month, _day);
+                    SetWastes(this.DateTime, this.WasteType);
                 }
-                if (item.Decrease.HasValue)
+                else
                 {
-                    Decrease = item.Decrease.Value;
+                    DateTime = DateTime.Now.Date;
                 }
             }
         }
@@ -87,21 +128,22 @@ namespace WasteMVC.Models.HomeView
             WastesID = new List<int>(wastesID);
         }
 
-        public async Task CreateView(int pageIndex, int pageSize)
+        public async Task CreateView(int pageIndex)
         {
-            View = await PaginatedList<Waste>.CreateAsync(Wastes, pageIndex, pageSize);
+            if (Wastes != null)
+            {
+                View = await PaginatedList<Waste>.CreateAsync(Wastes, pageIndex, this.Wastes.Count());
+            }
         }
 
-        internal async Task<int> Edit(SystemContext context)
+        internal async Task<int> Edit(SystemContext context, string day = "")
         {
             uow = new UnitOfWork<SystemContext>(context);
+
+            SetDateTime(day);
+            SetWastes(this.DateTime, this.WasteType);
+
             List<Waste> data = new List<Waste>();
-            Wastes = uow.GetRepository<Waste>()
-                        .Get(w => w.DateTime.Date == DateTime.Date)
-                        .Where(w => w.WasteType.Description == WasteType)
-                        .Include(w => w.WasteType)
-                        .AsNoTracking();
-            await CreateView(1, 4); //Falta Definir el Ambito PageSize (Controlador+ View)
             foreach (var item in WastesID)
             {
                 data.Add(await uow.GetRepository<Waste>().FindAsync(w => w.Id == item));

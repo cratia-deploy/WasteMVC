@@ -34,7 +34,7 @@ namespace WasteMVC.Controllers
 
         public async Task<IActionResult> Edit(int? partnersID, int? page, string day = "", string wasteType = "")
         {
-            if (day == "" || wasteType == "")
+            if (day == "" || day == null || day.Length != 10)
             {
                 return RedirectToAction("Index");
             }
@@ -42,16 +42,18 @@ namespace WasteMVC.Controllers
             {
                 page = 1;
             }
-
+            if(wasteType == null)
+            {
+                wasteType = string.Empty;
+            }
             ViewData["Day"] = day;
             ViewData["WastedType"] = wasteType;
             ViewData["Page"] = page;
             ViewData["Day"] = day;
-            ViewData["WasteType"] = wasteType;
             ViewData["PartnersID"] = partnersID;
 
             HomeEditView _view = new HomeEditView(_context, partnersID, day, wasteType);
-            await _view.CreateView(page ?? 1, 4); // Definir PageSize
+            await _view.CreateView(page ?? 1);
             return View(_view);
         }
 
@@ -60,15 +62,20 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("WasteType,DateTime,Cost2,SalePrice2,Decrease")] HomeEditView homeEditView, int[] wastesID)
+        public async Task<IActionResult> Edit([Bind("WasteType,DateTime,Cost2,SalePrice2,Decrease")] HomeEditView homeEditView, int[] wastesID, string day = "")
         {
-            if (wastesID == null || wastesID.Length <=0)
+            if (wastesID == null || wastesID.Length <= 0)
+            {
+                return NotFound();
+            }
+            if (day == null || day == "" || day == string.Empty)
             {
                 return NotFound();
             }
             homeEditView.SetWastesID(wastesID);
-            if(await homeEditView.Edit(_context) > 0)
+            if (await homeEditView.Edit(_context, day) > 0)
                 return RedirectToAction("Index");
+            await homeEditView.CreateView(1);
             return View(homeEditView);
         }
 
