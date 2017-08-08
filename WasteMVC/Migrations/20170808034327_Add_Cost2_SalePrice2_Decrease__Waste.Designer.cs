@@ -8,9 +8,10 @@ using WasteMVC.Data;
 namespace WasteMVC.Migrations
 {
     [DbContext(typeof(SystemContext))]
-    partial class SystemContextModelSnapshot : ModelSnapshot
+    [Migration("20170808034327_Add_Cost2_SalePrice2_Decrease__Waste")]
+    partial class Add_Cost2_SalePrice2_Decrease__Waste
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")
