@@ -23,25 +23,25 @@ namespace WasteMVC.Models
 
         [Display(Name = "Percio Costo [BsF.]")]
         [DisplayFormat(DataFormatString = "{0:C2}")]
-        public double? Cost { get; set; } = 0.0;
+        public double? Cost { get; set; } = null;
 
         [Display(Name = "Precio Venta [BsF.]")]
         [DisplayFormat(DataFormatString = "{0:C2}")]
-        public double? SalePrice { get; set; } = 0.0;
+        public double? SalePrice { get; set; } = null;
 
         public HashSet<Partner> Partners { get; set; }
 
         [Display(Name = "Costo Final [BsF.]")]
         [DisplayFormat(DataFormatString = "{0:C2}")]
-        public double? Cost2 { get; set; } = 0.00;
+        public double? Cost2 { get; set; } = null;
 
         [Display(Name = "Precio Final [BsF.]")]
         [DisplayFormat(DataFormatString = "{0:C2}")]
-        public double? SalePrice2 { get; set; } = 0.00;
+        public double? SalePrice2 { get; set; } = null;
 
         [Display(Name = "Merma [Kg.]")]
         [DisplayFormat(DataFormatString = "{0:N2} Kg.")]
-        public double? Decrease { get; set; } = 0.00;
+        public double? Decrease { get; set; } = null;
 
     }
 }
