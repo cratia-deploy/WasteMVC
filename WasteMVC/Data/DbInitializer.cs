@@ -81,7 +81,7 @@ namespace WasteMVC.Data
                 p1 = rnd.Next(1, count_p);
                 p2 = ((p1+1) % count_p) + 1;
                 Percentage1 = Math.Round((1.00 / (double)rnd.Next(1, 10)), 2);
-                Percentage2 = 1.00 - Percentage1;
+                Percentage2 = Math.Round((1.00 - Percentage1),2);
                 ws.Add(new Waste
                 {
                     WasteType = uow.GetRepository<WasteType>().Find(rnd.Next(1,count_wt+1)),
