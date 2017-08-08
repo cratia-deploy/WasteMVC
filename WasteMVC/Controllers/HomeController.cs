@@ -32,7 +32,7 @@ namespace WasteMVC.Controllers
             return View(_view);
         }
 
-        public async Task<IActionResult> Edit(int? id, int? page, string day = "", string wasteType = "")
+        public async Task<IActionResult> Edit(int? partnersID, int? page, string day = "", string wasteType = "")
         {
             if (day == "" || wasteType == "")
             {
@@ -48,10 +48,10 @@ namespace WasteMVC.Controllers
             ViewData["Page"] = page;
             ViewData["Day"] = day;
             ViewData["WasteType"] = wasteType;
-            ViewData["PartnersID"] = id;
+            ViewData["PartnersID"] = partnersID;
 
-            HomeEditView _view = new HomeEditView(_context, id, day, wasteType);
-            await _view.CreateView(page ?? 1, 5);
+            HomeEditView _view = new HomeEditView(_context, partnersID, day, wasteType);
+            await _view.CreateView(page ?? 1, 4); // Definir PageSize
             return View(_view);
         }
 
@@ -60,11 +60,16 @@ namespace WasteMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("WasteType,DateTime,Cost2,SalePrice2,Decrease")] HomeEditView  values)
+        public async Task<IActionResult> Edit([Bind("WasteType,DateTime,Cost2,SalePrice2,Decrease")] HomeEditView homeEditView, int[] wastesID)
         {
-            if(await values.Edit(_context) > 0)
+            if (wastesID == null || wastesID.Length <=0)
+            {
+                return NotFound();
+            }
+            homeEditView.SetWastesID(wastesID);
+            if(await homeEditView.Edit(_context) > 0)
                 return RedirectToAction("Index");
-            return View(values);
+            return View(homeEditView);
         }
 
         public IActionResult About()

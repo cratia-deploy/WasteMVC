@@ -4,8 +4,9 @@
     ViewData["Title"] = "Edit";
 }
 
-<h2>Edit</h2>
-<h4>Waste de el Dia</h4>
+<h3>Desperdicio</h3>
+<h5>Dia: @Model.DateTime.ToString("dd/MM/yyy")</h5>
+<h5>Tipo: @Model.WasteType</h5>
 <hr />
 <table class="table">
     <thead>
@@ -53,7 +54,7 @@
                        asp-route-day="@ViewData["Day"]"
                        asp-route-wasteType="@ViewData["WasteType"]"
                        asp-route-page="@(Model.View.PageIndex)"
-                       asp-route-id="@item1.Id">
+                       asp-route-partnersID="@item1.Id">
                         <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
                     </a> |
                     <a asp-controller="Wastes"
@@ -94,6 +95,10 @@
 </table>
 <hr />
 <form asp-action="Edit">
+    @foreach (var item1 in Model.View)
+    {
+        <input type="hidden" name="wastesID" value="@item1.Id" class="form-control" />
+    }
     <div class="form-horizontal">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group">
@@ -121,7 +126,14 @@
         <input type="hidden" asp-for="WasteType" />
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Edit" class="btn btn-default" />
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-day="@ViewData["Day"]"
+                   asp-route-page="1"
+                   class="btn btn-default">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                </a>
+                <input type="submit" value="Edit" class="btn btn-default"/>
             </div>
         </div>
     </div>
@@ -180,10 +192,6 @@
     </a>
 </div>
 
-<a asp-controller="Home"
-   asp-action="Index"
-   asp-route-day="@ViewData["Day"]"
-   asp-route-page="1"
-   class="btn btn-default">
-    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-</a>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
