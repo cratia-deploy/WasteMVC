@@ -10,126 +10,102 @@ namespace WasteMVC.Data
         {
             _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
-            UnitOfWork<SystemContext> _uow = new UnitOfWork<SystemContext>(_context);
+            UnitOfWork<SystemContext> uow = new UnitOfWork<SystemContext>(_context);
             Random rnd = new Random();
-
-            _uow.GetRepository<Waste>()
-                .Add(new Waste
+            ///
+            /// CREANDO LOS TIPOS DE DESPERDICIOS
+            /// 
+            List<WasteType> wt = new List<WasteType>{
+                new WasteType
                 {
-                    WasteType = new WasteType
-                    {
-                        Description = "DESPERDICIO DE POLLO"
-                    },
-                    DateTime = DateTime.Now,
+                    Description = "DESPERDICIO DE BOVINO"
+                },
+                new WasteType
+                {
+                    Description = "DESPERDICIO DE POLLO"
+                },
+                new WasteType
+                {
+                    Description = "DESPERDICIO DE MIXTO"
+                },
+            };
+            ///
+            /// CREANDO LOS SOCIO
+            /// 
+            List<Person> p = new List<Person>
+            {
+                new Person
+                {
+                     FirstName ="CARLOS ALBERTO",
+                     LastName = "RATIA VILORIA"
+                },
+                new Person
+                {
+                     FirstName ="INGRID",
+                     LastName = "CAMACHO"
+                },
+                new Person
+                {
+                     FirstName ="PAOLA ANDREINA",
+                     LastName = "CAMACHO MARQUEZ"
+                },
+                new Person
+                {
+                     FirstName ="IGNACIO ALBERTO",
+                     LastName = "RATIA CAMACHO"
+                },
+            };
+            ///
+            /// SALVANDO NUEVOS OBJETOS
+            /// 
+            uow.GetRepository<WasteType>().Add(wt);
+            uow.GetRepository<Person>().Add(p);
+            uow.Commit();
+
+            ///
+            /// AGREGANDO DESPERDICIOS
+            /// 
+
+            int count_p = p.Count;
+            int count_wt = wt.Count;
+            List<Waste> ws = new List<Waste>();
+            double _Cost = 0.00;
+            int p1;
+            int p2;
+            double Percentage1;
+            double Percentage2;
+
+            for (int i = 0; i < 150; i++)
+            {
+                _Cost = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2);
+                p1 = rnd.Next(1, count_p);
+                p2 = ((p1+1) % count_p) + 1;
+                Percentage1 = Math.Round((1.00 / (double)rnd.Next(1, 10)), 2);
+                Percentage2 = 1.00 - Percentage1;
+                ws.Add(new Waste
+                {
+                    WasteType = uow.GetRepository<WasteType>().Find(rnd.Next(1,count_wt+1)),
+                    DateTime = DateTime.Now.AddDays(-1 * (i % 30)).Date,
                     Weight = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-                    Cost = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-                    SalePrice = 2.0 * Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
+                    Cost = _Cost,
+                    SalePrice = 2.0 * _Cost,
                     Partners = new HashSet<Partner>
                     {
                         new Partner
                         {
-                            Person = new Person
-                            {
-                                FirstName = "CARLOS",
-                                LastName = "RATIA",
-                            },
-                            Percentage = 0.50,
+                            Person = uow.GetRepository<Person>().Find(p1),
+                            Percentage = Percentage1,
                         },
                         new Partner
                         {
-                            Person = new Person
-                            {
-                            FirstName = "PAOLA",
-                            LastName = "CAMACHO",
-                            },
-                            Percentage = 0.50,
-                        },
-                    }
+                            Person = uow.GetRepository<Person>().Find(p2),
+                            Percentage = Percentage2,
+                        }
+                    },
                 });
-            _uow.Commit();
-            _uow.GetRepository<Waste>()
-            .Add(new Waste
-            {
-                WasteType = new WasteType
-                {
-                    Description = "DESPERDICIO DE MIXTO"
-                },
-                DateTime = DateTime.Now,
-                Weight = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-                Cost = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-                SalePrice = 2.0 * Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-                Partners = new HashSet<Partner>
-                    {
-                        new Partner
-                        {
-                            Person = new Person
-                            {
-                                FirstName = "INGRID",
-                                LastName = "CAMACHO",
-                            },
-                            Percentage = 0.50,
-                        },
-                        new Partner
-                        {
-                            Person = new Person
-                            {
-                            FirstName = "IGNACIO",
-                            LastName = "ALBERTO",
-                            },
-                            Percentage = 0.50,
-                        },
-                }
-            });
-            _uow.Commit();
-            _uow.GetRepository<Waste>()
-.Add(new Waste
-{
-    WasteType = new WasteType
-    {
-        Description = "DESPERDICIO DE BOVINO"
-    },
-    DateTime = DateTime.Now,
-    Weight = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    Cost = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    SalePrice = 2.0 * Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    Partners = new HashSet<Partner>
-        {
-                        new Partner
-                        {
-                            Person = _uow.GetRepository<Person>().Firts(),
-                            Percentage = 0.60,
-                        },
-                        new Partner
-                        {
-                            Person = _uow.GetRepository<Person>().Last(),
-                            Percentage = 0.40,
-                        },
-    }
-});
-            _uow.Commit();
-            _uow.GetRepository<Waste>()
-.Add(new Waste
-{
-    WasteType = _uow.GetRepository<WasteType>().Firts(),
-    DateTime = DateTime.Now,
-    Weight = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    Cost = Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    SalePrice = 2.0 * Math.Round((double)rnd.Next(1, 10000) / (double)rnd.Next(1, 100), 2),
-    Partners = new HashSet<Partner>
-        {
-                        new Partner
-                        {
-                            Person = _uow.GetRepository<Person>().Firts(),
-                            Percentage = 0.70,
-                        },
-                        new Partner
-                        {
-                            Person = _uow.GetRepository<Person>().Last(),
-                            Percentage = 0.30,
-                        },
-    }
-});
-            _uow.Commit();
+            }
+            uow.GetRepository<Waste>().Add(ws);
+            uow.Commit();
         }
     }
 }
