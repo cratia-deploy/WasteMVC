@@ -1,9 +1,7 @@
-@model WasteMVC.Models.HomeView.HomeEditView
-
+@model WasteMVC.Models.HomeView.HomeDetailsView
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Details";
 }
-
 <h3>Desperdicio</h3>
 <h5>Dia: @Model.DateTime.ToString("dd/MM/yyy")</h5>
 @if (Model.WasteType != string.Empty)
@@ -55,8 +53,8 @@
                     </td>
                     <td>
                         <a asp-controller="Home"
-                           asp-action="Edit"
-                           asp-route-day="@ViewData["Day"]"
+                           asp-action="Details"
+                           asp-route-day="@ViewData["Day"]" 
                            asp-route-wasteType="@ViewData["WasteType"]"
                            asp-route-page="@(Model.View.PageIndex)"
                            asp-route-partnersID="@item1.Id">
@@ -100,65 +98,14 @@
     </tbody>
 </table>
 <hr />
-<form asp-action="Edit">
-    @if (Model.View != null)
-    {
-        @foreach (var item1 in Model.View)
-        {
-            <input type="hidden" name="wastesID" value="@item1.Id" class="form-control" />
-        }
-    }
-    <input type="hidden" name="day" value="@Model.DateTime.ToString("dd/MM/yyy")" class="form-control" />
-    <div class="form-horizontal">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="form-group">
-            <label asp-for="Cost2" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Cost2" class="form-control" />
-                <span asp-validation-for="Cost2" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="SalePrice2" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="SalePrice2" class="form-control" />
-                <span asp-validation-for="SalePrice2" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="Decrease" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Decrease" class="form-control" />
-                <span asp-validation-for="Decrease" class="text-danger"></span>
-            </div>
-        </div>
-        <input type="hidden" asp-for="DateTime" />
-        <input type="hidden" asp-for="WasteType" />
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <a asp-controller="Home"
-                   asp-action="Index"
-                   asp-route-day="@ViewData["Day"]"
-                   asp-route-page="1"
-                   class="btn btn-default">
-                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-                </a>
-                <input type="submit" value="Edit" class="btn btn-default" />
-            </div>
-        </div>
-    </div>
-</form>
-<hr />
 
 @if (Model.View != null)
 {
-
     var prevDisabled = !Model.View.HasPreviousPage ? "disabled" : "";
     var nextDisabled = !Model.View.HasNextPage ? "disabled" : "";
-
     <div class="center-block text-center">
         <a asp-controller="Home"
-           asp-action="Edit"
+           asp-action="Details"
            asp-route-day="@ViewData["Day"]"
            asp-route-wasteType="@ViewData["WasteType"]"
            asp-route-page="@(Model.View.PageIndex - 1)"
@@ -171,7 +118,7 @@
             if (((i - 5) < ViewBag.Page) && (ViewBag.Page < (i + 5)))
             {
                 <a asp-controller="Home"
-                   asp-action="Edit"
+                   asp-action="Details"
                    asp-route-day="@ViewData["Day"]"
                    asp-route-wasteType="@ViewData["WasteType"]"
                    asp-route-page="@(i)"
@@ -183,7 +130,7 @@
             else if (i % 5 == 0 || i == 1)
             {
                 <a asp-controller="Home"
-                   asp-action="Edit"
+                   asp-action="Details"
                    asp-route-page="@(i)"
                    asp-route-id=""
                    class="btn btn-default">
@@ -193,8 +140,8 @@
         }
 
         <a asp-controller="Home"
-           asp-action="Edit"
-           asp-route-day="@ViewData["Day"]"
+           asp-action="Details"
+           asp-route-day="@ViewData["Day"]" 
            asp-route-wasteType="@ViewData["WasteType"]"
            asp-route-page="@(Model.View.PageIndex + 1)"
            asp-route-id=""
@@ -202,8 +149,4 @@
             >
         </a>
     </div>
-}
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

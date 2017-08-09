@@ -47,7 +47,7 @@ namespace WasteMVC.Controllers
                 wasteType = string.Empty;
             }
             ViewData["Day"] = day;
-            ViewData["WastedType"] = wasteType;
+            ViewData["WasteType"] = wasteType;
             ViewData["Page"] = page;
             ViewData["Day"] = day;
             ViewData["PartnersID"] = partnersID;
@@ -81,9 +81,28 @@ namespace WasteMVC.Controllers
 
         [HttpGet]
         [ActionName("Details")]
-        public IActionResult Details()
+        public async Task<IActionResult> Details(int? partnersID, int? page, string day = "", string wasteType = "")
         {
-            return View();
+            if (day == "" || day == null || day.Length != 10)
+            {
+                return RedirectToAction("Index");
+            }
+            if (page == null)
+            {
+                page = 1;
+            }
+            if (wasteType == null)
+            {
+                wasteType = string.Empty;
+            }
+            ViewData["Day"] = day;
+            ViewData["WasteType"] = wasteType;
+            ViewData["Page"] = page.Value;
+            ViewData["Day"] = day;
+            ViewData["PartnersID"] = partnersID;
+            HomeDetailsView homeDetailsView = new HomeDetailsView(_context, partnersID, day, wasteType);
+            await homeDetailsView.CreateView(page.Value);
+            return View(homeDetailsView);
         }
 
         public IActionResult About()
