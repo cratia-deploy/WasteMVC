@@ -20,15 +20,19 @@ namespace WasteMVC.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? page)
+        [HttpGet]
+        [ActionName("Index")]
+        public IActionResult Index(int? page, string DayStart = "", string DayEnd = "")
         {
-            HomeIndexView _view = new HomeIndexView(_context);
+            HomeIndexView _view = new HomeIndexView(_context, DayStart, DayEnd);
             if (page == null)
             {
                 page = 1;
             }
             ViewData["Page"] = page;
-            await _view.CreateView(page ?? 1, 5);
+            ViewData["DayStart"] = DayStart;
+            ViewData["DayEnd"] = DayEnd;
+            _view.CreateView(page ?? 1);
             return View(_view);
         }
 

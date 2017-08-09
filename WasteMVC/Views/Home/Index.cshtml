@@ -6,7 +6,39 @@
 
 <h3>Sistema</h3>
 <hr />
-
+<form asp-controller="Home" asp-action="Index" method="get">
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="DayStart" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="DayStart" class="form-control" />
+                <span asp-validation-for="DayStart" class="text-danger"></span>
+            </div>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="DayEnd" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="DayEnd" class="form-control" />
+                <span asp-validation-for="DayEnd" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Filtrar" class="btn btn-default" />
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-day="@ViewData["Day"]"
+                   asp-route-page="1"
+                   class="btn btn-default">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
+<hr />
 <table class="table table-hover table-condensed">
     <thead>
         <tr>
@@ -20,9 +52,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (Model.Result.Count > 0)
+        @if (Model.View.Count > 0)
         {
-            @foreach (var item1 in Model.Result)
+            @foreach (var item1 in Model.View)
             {
                 int rowspan = @item1.SubTotal.Count() + 1;
                 <tr>
@@ -80,3 +112,58 @@
         }
     </tbody>
 </table>
+<hr />
+@if (Model.View != null && Model.View.Count > 0)
+{
+
+    var prevDisabled = !Model.View.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.View.HasNextPage ? "disabled" : "";
+
+    <div class="center-block text-center">
+        <a asp-controller="Home"
+           asp-action="Index"
+           asp-route-DayStart="@ViewData["DayStart"]"
+           asp-route-DayEnd="@ViewData["DayEnd"]"
+           asp-route-page="@(Model.View.PageIndex - 1)"
+           class="btn btn-default @prevDisabled">
+            <
+        </a>
+        @for (int i = 1; i <= Model.View.TotalPages; i++)
+        {
+            if (((i - 5) < ViewBag.Page) && (ViewBag.Page < (i + 5)))
+            {
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-DayStart="@ViewData["DayStart"]"
+                   asp-route-DayEnd="@ViewData["DayEnd"]"
+                   asp-route-page="@(i)"
+                   class="btn btn-default">
+                    @i
+                </a>
+            }
+            else if (i % 5 == 0 || i == 1)
+            {
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-DayStart="@ViewData["DayStart"]"
+                   asp-route-DayEnd="@ViewData["DayEnd"]"
+                   asp-route-page="@(i)"
+                   class="btn btn-default">
+                    @i
+                </a>
+            }
+        }
+        <a asp-controller="Home"
+           asp-action="Index"
+           asp-route-DayStart="@ViewData["DayStart"]"
+           asp-route-DayEnd="@ViewData["DayEnd"]"
+           asp-route-page="@(Model.View.PageIndex + 1)"
+           class="btn btn-default @nextDisabled">
+            >
+        </a>
+    </div>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

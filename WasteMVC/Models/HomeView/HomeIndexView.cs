@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WasteMVC.Data;
@@ -9,31 +10,95 @@ namespace WasteMVC.Models.IndexView
     public class HomeIndexView
     {
         private readonly UnitOfWork<SystemContext> _uow = null;
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Fecha Inicio: ")]
         public DateTime DayStart { get; private set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Fecha Fin: ")]
         public DateTime DayEnd { get; private set; }
+
         public IQueryable<Waste> Waste { get; private set; } = null;
-        public PaginatedList<Waste> View { get; private set; } = null;
+        public PaginatedList<ViewX> View { get; private set; } = null;
         public List<ViewX> Result { get; private set; } = null;
 
-        internal HomeIndexView(SystemContext _context)
+        internal HomeIndexView(SystemContext _context, string _DayStart = "", string _DayEnd = "")
         {
-            DayStart = DateTime.Now.AddDays(-6).Date;
-            DayEnd = DateTime.Now.Date;
+            SetDayStart(_DayStart);
+            SetDayEnd(_DayEnd);
+            if (DayStart > DayEnd)
+            {
+                DateTime temp = DayEnd.Date;
+                DayEnd = DayStart.Date;
+                DayStart = temp.Date;
+            }
             _uow = new UnitOfWork<SystemContext>(_context);
             Waste = _uow.GetRepository<Waste>().Get()
                         .Where(w => w.DateTime.Date <= DayEnd.Date)
                         .Where(w => w.DateTime.Date >= DayStart.Date);
             Result = new List<ViewX>();
-            for (int i = 0; i < 7; i++)
+
+            DateTime _day = DayStart.Date;
+            while (_day <= DayEnd)
             {
-                Result.Add(new ViewX(Waste, DayStart.AddDays(i).Date));
+                Result.Add(new ViewX(Waste, _day));
+                _day = _day.AddDays(1).Date;
             }
         }
 
-        internal async Task<bool> CreateView(int? page, int cant)
+        private void SetDayEnd(string day)
         {
-            this.View = await PaginatedList<Waste>.CreateAsync(Waste, page ?? 1, cant);
-            cant = View.Count;
+            if (day != null && day != "" && day.Length == 10)
+            {
+                string[] values = day.Split(new char[] { '-', '/', '.' }, 3);
+                if (values.Length == 3)
+                {
+                    int _day = int.Parse(values[2]);
+                    int _month = int.Parse(values[1]);
+                    int _year = int.Parse(values[0]);
+                    DayEnd = new DateTime(_year, _month, _day);
+                }
+                else
+                {
+                    DayEnd = DateTime.Now.Date;
+                }
+            }
+            else
+            {
+                DayEnd = DateTime.Now.Date;
+            }
+        }
+
+        private void SetDayStart(string day)
+        {
+            if (day != null && day != "" && day.Length == 10)
+            {
+                string[] values = day.Split(new char[] { '-', '/', '.' }, 3);
+                if (values.Length == 3)
+                {
+                    int _day = int.Parse(values[2]);
+                    int _month = int.Parse(values[1]);
+                    int _year = int.Parse(values[0]);
+                    DayStart = new DateTime(_year, _month, _day);
+                }
+                else
+                {
+                    DayStart = DateTime.Now.AddDays(-6).Date;
+                }
+            }
+            else
+            {
+                DayStart = DateTime.Now.AddDays(-6).Date;
+            }
+        }
+
+        internal bool CreateView(int? page)
+        {
+            this.View = PaginatedList<ViewX>.CreateAsync(Result, page ?? 1, 7);
+            int cant = View.Count;
             if (cant > 0)
             {
                 return true;
@@ -89,7 +154,7 @@ namespace WasteMVC.Models.IndexView
                               .Where(w => w.DateTime.Date == _dayofWeek.Date)
                               .Select(w => w.SalePrice.Value)
                               .ToList()
-                              .Sum();   
+                              .Sum();
                 /////
                 /////
             }
