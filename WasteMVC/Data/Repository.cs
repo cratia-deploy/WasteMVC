@@ -12,6 +12,12 @@ namespace WasteMVC.Data
         where TEntity : EntityBase
         where TContext : DbContext
     {
+        /// <summary>
+        /// Patrón Singleton
+        /// </summary>
+        private static Repository<TContext, TEntity> instance = null;
+        private static readonly object padlock = new object();
+
         private readonly TContext Context = null;
         private readonly DbSet<TEntity> EntitySet = null;
 
@@ -22,6 +28,21 @@ namespace WasteMVC.Data
                 this.Context = _DbContext;
                 this.EntitySet = this.Context.Set<TEntity>();
             }
+        }
+
+        public static Repository<TContext, TEntity> Instance(TContext _DbContext)
+        {
+            if (instance == null)
+            {
+                lock (padlock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new Repository<TContext, TEntity>(_DbContext);
+                    }
+                }
+            }
+            return instance;
         }
 
         public virtual IQueryable<TEntity> Get(
