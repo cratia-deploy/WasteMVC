@@ -11,12 +11,6 @@ namespace WasteMVC.Data
     class UnitOfWork<TContext>
             where TContext : DbContext
     {
-        /// <summary>
-        /// Patrón Singleton
-        /// </summary>
-        private static UnitOfWork<TContext> instance = null;
-        private static readonly object padlock = new object();
-
         private TContext Context = null;
         private readonly Dictionary<Type, object> Repositories = null;
 
@@ -24,21 +18,6 @@ namespace WasteMVC.Data
         {
             this.Context = _context;
             this.Repositories = new Dictionary<Type, object>();
-        }
-
-        public static UnitOfWork<TContext> Instance(TContext _context)
-        {
-            if (instance == null)
-            {
-                lock (padlock)
-                {
-                    if (instance == null)
-                    {
-                        instance = new UnitOfWork<TContext>(_context);
-                    }
-                }
-            }
-            return instance;
         }
 
         public virtual IRepository<TEntity> GetRepository<TEntity>()
