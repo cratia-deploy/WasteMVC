@@ -9,7 +9,6 @@ namespace WasteMVC.Models.IndexView
 {
     public class HomeIndexView
     {
-        private readonly UnitOfWork<SystemContext> _uow = null;
 
         [Required]
         [DataType(DataType.Date)]
@@ -35,8 +34,8 @@ namespace WasteMVC.Models.IndexView
                 DayEnd = DayStart.Date;
                 DayStart = temp.Date;
             }
-            _uow = new UnitOfWork<SystemContext>(_context);
-            Waste = _uow.GetRepository<Waste>().Get()
+            UnitOfWork<SystemContext>  uow = new UnitOfWork<SystemContext>(_context);
+            Waste = uow.GetRepository<Waste>().Get()
                         .Where(w => w.DateTime.Date <= DayEnd.Date)
                         .Where(w => w.DateTime.Date >= DayStart.Date);
             Result = new List<ViewX>();

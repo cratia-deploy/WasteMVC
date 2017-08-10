@@ -12,11 +12,9 @@ namespace WasteMVC.Controllers
     public class HomeController : Controller
     {
         private readonly SystemContext _context = null;
-        private readonly UnitOfWork<SystemContext> _uow = null;
 
         public HomeController(SystemContext context)
         {
-            _uow = new UnitOfWork<SystemContext>(context);
             _context = context;
         }
 
