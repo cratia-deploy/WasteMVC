@@ -34,7 +34,13 @@
                 <ul class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
                     <li><a asp-area="" asp-controller="Persons" asp-action="Index">Persona</a></li>
-                    <li><a asp-area="" asp-controller="Wastes" asp-action="Index">Desperdicios</a></li>
+                    <li>
+                        <a asp-area=""
+                           asp-action="Index"
+                           asp-controller="Wastes"
+                           asp-route-sortOrder="date_asc"
+                           asp-route-page="1">Desperdicios</a>
+                    </li>
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
                 </ul>
