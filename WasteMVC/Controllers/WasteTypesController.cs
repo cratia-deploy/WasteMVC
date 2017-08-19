@@ -16,7 +16,7 @@ namespace WasteMVC.Controllers
 
         public WasteTypesController(SystemContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: WasteTypes
@@ -148,6 +148,17 @@ namespace WasteMVC.Controllers
         private bool WasteTypeExists(int id)
         {
             return _context.WasteTypes.Any(e => e.Id == id);
+        }
+
+        [HttpGet]
+        [ActionName("Json")]
+        public async Task<IActionResult> IndexJson(int? id)
+        {
+            if ((id != null) && (id.HasValue))
+            {
+                return Json(_context.WasteTypes.Find(id.Value));
+            }
+            return Json(await _context.WasteTypes.ToListAsync());
         }
     }
 }
