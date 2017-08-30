@@ -1,7 +1,168 @@
 ﻿@{
-    ViewData["Title"] = "About";
 }
-<h2>@ViewData["Title"].</h2>
-<h3>@ViewData["Message"]</h3>
 
-<p>Use this area to provide additional information.</p>
+<style>
+    .wacth {
+        background-color: black;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        position: relative;
+        margin: auto;
+    }
+
+    .timer {
+        height: 200px;
+        background-color: white;
+        position: absolute;
+        left: 200px;
+        transform-origin: center bottom;
+        bottom: 50%;
+    }
+
+    .seconds {
+        height: 180px;
+        width: 2px;
+        background-color: hsl(0, 0%, 90%);
+    }
+
+    .minutes {
+        height: 175px;
+        width: 3px;
+        background-color: hsl(0, 0%, 70%);
+    }
+
+    .hours {
+        height: 125px;
+        width: 4px;
+        background-color: hsl(0, 0%, 95%);
+    }
+
+    .signal {
+        width: 2px;
+        height: 10px;
+        background-color: white;
+        position: absolute;
+        left: 199px;
+        transform-origin: 1px 200px;
+    }
+
+    .number {
+        display: block;
+        position: absolute;
+        color: white;
+        top: 100%;
+        width: 20px;
+        height: 20px;
+        font-size: 2em;
+        left: -13px;
+        text-align: center;
+    }
+</style>
+
+<div class="wacth">
+    <div id="seconds" class="timer seconds"></div>
+    <div id="minutes" class="timer minutes"></div>
+    <div id="hours" class="timer hours"></div>
+    @{
+        int j = 1;
+        @for (int i = 0; i < 60; i++)
+        {
+            <div class="signal">
+                @if (i % 5 == 0 && i != 0 && j < 10)
+                {
+                    <p class="number">
+                        &nbsp;@(j++)
+                    </p>
+                }
+                else if (i % 5 == 0 && i != 0 && j >= 10)
+                {
+                    <p class="number">
+                        @(j++)
+                    </p>
+                }
+                @if (i == 0)
+                {
+                    <p class=" = number">
+                        12
+                    </p>
+                }
+            </div>
+        }
+    }
+</div>
+<button id="button1" onclick=Start()>Start</button>
+<button id="button2" onclick=Reset() disabled>Reset</button>
+<button id="button3" onclick=Stop() disabled>Stop</button>
+<button id="button4" onclick=setHour()>Set Hour</button>
+
+@section Scripts {
+    <script>
+        "use strict";
+        let id;
+        let s = document.getElementById("seconds");
+        let m = document.getElementById("minutes");
+        let h = document.getElementById("hours");
+        let posS = 0;
+        let posM = 0;
+        let posH = 0;
+        let posSignal = 0;
+        let milliSeconds = 1000;
+
+        var signal = document.getElementsByClassName("signal");
+        for (var i = 0; i < signal.length; i++) {
+            if ((i % 5) == 0) {
+                signal[i].style.width = "6px";
+                signal[i].style.height = "20px";
+            }
+            signal[i].style.transform = "rotate(" + posSignal + "deg)";
+            posSignal += 6;
+        }
+
+        function Start() {
+            document.getElementById("button1").disabled = true;
+            document.getElementById("button2").disabled = false;
+            document.getElementById("button3").disabled = false;
+            id = setInterval(frame, milliSeconds / 6);
+            function frame() {
+                posS += 1;
+                posM += 6 / 360;
+                posH += 30 / (360 * 360);
+                if (posS >= 360) {
+                    posS = 0;
+                    if (posM >= 360) {
+                        posM = 0;
+                        if (posH >= 360) {
+                            posH = 0;
+                        }
+                    }
+                }
+                s.style.transform = "rotate(" + posS + "deg)";;
+                m.style.transform = "rotate(" + posM + "deg)";;
+                h.style.transform = "rotate(" + posH + "deg)";;
+            }
+        }
+        function Stop() {
+            document.getElementById("button1").disabled = false;
+            document.getElementById("button3").disabled = true;
+            clearInterval(id);
+        }
+        function Reset() {
+            posS = 0;
+            posM = 0;
+            posH = 0;
+            s.style.transform = "rotate(0deg)";
+            m.style.transform = "rotate(0deg)";
+            h.style.transform = "rotate(0deg)";
+        }
+        function setHour() {
+            var date = new Date();
+            posS = date.getSeconds() * 6 + date.getMilliseconds() * 6 / 1000;
+            posM = date.getMinutes() * 6 + posS / 60;
+            posH = date.getHours() * 30 + posM / 12;
+            s.style.transform = "rotate(" + posS + "deg)";;
+            m.style.transform = "rotate(" + posM + "deg)";;
+            h.style.transform = "rotate(" + posH + "deg)";;
+        }
+    </script>
+}

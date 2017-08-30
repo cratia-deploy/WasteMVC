@@ -1,0 +1,684 @@
+﻿@{
+}
+
+<canvas width="600" height="400" id="canvas"></canvas>
+<div class="row">
+    <p>Angulo de Rotacion: </p>
+    <p></p>
+    <p></p>
+    <p></p>
+</div>
+<br />
+<div class="row">
+    <select id="typeFigure" onclick=fConstructor()>
+        <option value="Cubo">Cubo</option>
+        <option value="Piramide">Piramide</option>
+        <option value="Tetraedro">Tetraedro</option>
+        <option value="Octaedro">Octaedro</option>
+        <option value="Icosaedro">Icosaedro</option>
+        <option value="Dodecaedro">Dodecaedro</option>
+        <option value="RegularStart">RegularStart</option>
+        <option value="RhombicDodecahedron">RhombicDodecahedron</option>
+        RhombicDodecahedron
+    </select>
+</div>
+<br />
+<div class="row">
+    <button onclick=fDecreaseRotateX()>-</button>Rotate X<button onclick=fIncreaseRotateX()>+</button> |
+    <button onclick=fDecreaseRotateY()>-</button>Rotate Y<button onclick=fIncreaseRotateY()>+</button> |
+    <button onclick=fDecreaseRotateZ()>-</button>Rotate Z<button onclick=fIncreaseRotateZ()>+</button> |
+    <button id="btnStart" onclick=start()>Start</button> |
+    <button onclick=stop()>Stop</button> |
+    <button onclick=reset()>Reset</button> |
+</div>
+
+<script>
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    class Punto {
+        constructor(_x, _y, _z) {
+            this.x0 = Math.ceil(canvas.width / 2);
+            this.y0 = Math.ceil(canvas.height / 2);
+            this.z0 = 0;
+            this.x = this.x0 + _x;
+            this.y = this.y0 + _y;
+            this.z = this.z0 + _z;
+            this.xd = this.x0 + _x;
+            this.yd = this.y0 + _y;
+            this.zd = this.z0 + _z;
+            this.radius = 4;
+            this.color = 'black';
+        }
+        rotationZYX(x, y, z) {
+            let S1 = Math.sin(x * (Math.PI / 180));
+            let S2 = Math.sin(y * (Math.PI / 180));
+            let S3 = Math.sin(z * (Math.PI / 180));
+            let C1 = Math.cos(x * (Math.PI / 180));
+            let C2 = Math.cos(y * (Math.PI / 180));
+            let C3 = Math.cos(z * (Math.PI / 180));
+            this.xd = this.x0 + (C1 * C2) * ((this.x - this.x0)) + (C1 * S2 * S3 - C3 * S1) * (this.y - this.y0) + (S1 * S3 + C1 * C3 * S2) * (this.z - this.z0);
+            this.yd = this.y0 + (C2 * S1) * ((this.x - this.x0)) + (C1 * C3 + S1 * S2 * S3) * (this.y - this.y0) + (C3 * S1 * S2 - C1 * S3) * (this.z - this.z0);
+            this.zd = this.z0 + (-S2) * ((this.x - this.x0)) + (C2 * S3) * (this.y - this.y0) + (C2 * C3) * (this.z - this.z0);
+        }
+        draw(number, colored) {
+            ctx.beginPath();
+            ctx.arc(this.xd, this.yd, this.radius, 0, Math.PI * 2, true);
+            let txt = number;// + "(" + Math.round(this.xd) + "," + Math.round(this.yd) + "," + Math.round(this.zd) + ")";
+            ctx.fillText(txt, this.xd + 10, this.yd + 10);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            if (colored === true) {
+                ctx.fillStyle = "red";
+            }
+            ctx.fill();
+        }
+        distanceTo(p) {
+            return Math.sqrt(((this.xd - p.xd) * (this.xd - p.xd)) + ((this.yd - p.yd) * (this.yd - p.yd)) + ((this.zd - p.zd) * (this.zd - p.zd)));
+        }
+        equalTo(p) {
+            return ((Math.abs(this.x - p.x) <= 0.001) && (Math.abs(this.y - p.y) <= 0.001) && (Math.abs(this.z - p.z) <= 0.001));
+        }
+        colored(number) {
+            this.draw(number, true);
+        }
+        escalar(k) {
+            this.x = k * (this.x - this.x0) + this.x0;
+            this.y = k * (this.y - this.y0) + this.y0;
+            this.z = k * (this.z - this.z0) + this.z0;
+            this.xd = k * (this.xd - this.x0) + this.x0;
+            this.yd = k * (this.yd - this.y0) + this.y0;
+            this.zd = k * (this.zd - this.z0) + this.z0;
+        }
+    }
+
+    class Figure {
+        constructor(_tamArista) {
+            this.tamArista = _tamArista;
+            this.lengthAxis = this.tamArista / 4;
+            //Angulos
+            this.angles = [0, 0, 0]
+            //Puntos Figura
+            this.puntos = [];           //Vertices
+            this.edge = [];             // Aristas
+            this.indicesOfFaces = [];   //Indices de las Caras confirmada por tres punto
+            this.subPuntos = [];        //Intecepciones entre las Aristas
+            //Utilidades
+            this.distance = [];
+            this.minDistanceFromCenter = 0;
+            this.maxDistanceFromCenter = 0;
+            this.lengthOfEdge = 0;
+            this.minDistanceBetweenPoints = 0;
+
+            //Ejes
+            this.ejes = [];
+            this.ejes.push(new Punto(0, 0, 0));                 // 0
+            this.ejes.push(new Punto(this.lengthAxis, 0, 0));   // X
+            this.ejes.push(new Punto(0, -this.lengthAxis, 0));  // Y
+            this.ejes.push(new Punto(0, 0, this.lengthAxis));   // Z
+
+        }
+        init(lengthEdge) {
+            this.calculateMinAndMaxDistanceFromCenter();
+            this.minDistanceBetweenPoints = this.calculateDistance();
+            if (lengthEdge == null) {
+                lengthEdge = this.minDistanceBetweenPoints;
+            }
+            this.calculateEdges(lengthEdge);
+            this.calculateSubPuntos();
+        }
+        rotate(x, y, z) {
+            this.angles = [x, y, z];
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.puntos[i].rotationZYX(x, y, z);
+            }
+            for (let i = 0; i < this.ejes.length; i++) {
+                this.ejes[i].rotationZYX(x, y, z);
+            }
+            for (let i = 0; i < this.subPuntos.length; i++) {
+                this.subPuntos[i].rotationZYX(x, y, z);
+            }
+        }
+        drawAxis() {
+            let txt = "";
+            for (let i = 0; i < this.ejes.length; i++) {
+                if (i === 1) {
+                    txt = "x";
+                }
+                else if (i === 2) {
+                    txt = "y";
+                }
+                else if (i === 3) {
+                    txt = "z"
+                }
+                else {
+                    txt = "o";
+                }
+                this.ejes[i].draw(txt, false);
+            }
+            ctx.beginPath();
+            for (let i = 1; i < this.ejes.length; i++) {
+                ctx.moveTo(this.ejes[0].xd, this.ejes[0].yd);
+                ctx.lineTo(this.ejes[i].xd, this.ejes[i].yd);
+            }
+            ctx.stroke();
+            ctx.closePath();
+        }
+        draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            this.drawAxis();
+            this.drawPoints();
+            this.drawSubPoints();
+            this.drawEdges();
+        }
+        drawFull() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            this.drawAxis();
+            this.drawPoints();
+            this.drawSubPoints();
+            ctx.beginPath();
+            for (let i = 0; i < this.puntos.length - 1; i++) {
+                for (var j = i + 1; j < this.puntos.length; j++) {
+                    ctx.moveTo(this.puntos[i].xd, this.puntos[i].yd);
+                    ctx.lineTo(this.puntos[j].xd, this.puntos[j].yd);
+                }
+            }
+            ctx.stroke();
+            ctx.closePath();
+        }
+        drawPoints() {
+            for (let i = 0; i < (this.puntos.length); i++) {
+                this.puntos[i].draw(i, false);
+            }
+        }
+        drawSubPoints() {
+            for (let i = 0; i < (this.subPuntos.length); i++) {
+                this.subPuntos[i].color = "blue";
+                this.subPuntos[i].draw(i, false);
+            }
+        }
+        drawEdges() {
+            if (this.edge.length === 0) {
+                throw new Error("Vector Aristas Vacio!!!");
+            }
+            else {
+                ctx.beginPath();
+                for (let i = 0; i < this.edge.length; i++) {
+                    ctx.moveTo(this.puntos[this.edge[i].pointStart].xd, this.puntos[this.edge[i].pointStart].yd);
+                    ctx.lineTo(this.puntos[this.edge[i].pointEnd].xd, this.puntos[this.edge[i].pointEnd].yd);
+                }
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+        calculateDistance() {
+            this.distance = [];
+            for (let i = 0; i < this.puntos.length; i++) {
+                for (let j = i + 1; j < this.puntos.length; j++) {
+                    this.distance.push(Math.abs(this.puntos[i].distanceTo(this.puntos[j])));
+                }
+            }
+            this.distance.sort((a, b) => (a - b));
+            return this.distance[0];
+        }
+        calculateEdges(lengthEdge) {
+            if (lengthEdge === null || lengthEdge === 0 || lengthEdge === undefined) {
+                return;
+            }
+            let d = 0;
+            this.edge = [];
+            this.lengthOfEdge = lengthEdge;
+            for (let i = 0; i < this.puntos.length; i++) {
+                for (let j = i + 1; j < this.puntos.length; j++) {
+                    d = Math.abs(this.puntos[i].distanceTo(this.puntos[j]) - lengthEdge);
+                    if (d <= 0.01) {
+                        this.edge.push({ pointStart: i, pointEnd: j });
+                    }
+                }
+            }
+        }
+        calculateFaces() {
+            for (let i = 0; i < this.edge.length; i++) {
+
+            }
+        }
+        calculateIntersectionBetweenEdges(p1, p2, p3, p4) {
+            let a = p2.x - p1.x;
+            let b = p3.x - p4.x;
+            let c = p2.y - p1.y;
+            let d = p3.y - p4.y;
+            let e = p3.x - p1.x;
+            let f = p3.y - p1.y;
+            if (Math.abs(a * d - c * b) <= 0.1) {
+                return null;
+            }
+            let t1 = (e * d - f * b) / (a * d - c * b);
+            let t2 = (a * f - c * e) / (a * d - c * b);
+            let eL = p1.z + (p2.z - p1.z) * t1;
+            let eR = p3.z + (p4.z - p3.z) * t2;
+            if (Math.abs(eL - eR) <= 0.1) {
+                return null;
+            }
+            let p = new Punto();
+            p.x = p1.x + (p2.x - p1.x) * t1;
+            p.y = p1.y + (p2.y - p1.y) * t1;
+            p.z = p1.z + (p2.z - p1.z) * t1;
+            return p;
+        }
+        calculateSubPuntos() {
+            this.subPuntos = [];
+            let p1 = new Punto();
+            let p2 = new Punto();
+            let p3 = new Punto();
+            let p4 = new Punto();
+            let pI = new Punto();
+            for (let i = 0; i < this.edge.length - 1; i++) {
+                for (let j = i + 1; j < this.edge.length; j++) {
+                    p1.x = this.puntos[this.edge[i].pointStart].x;
+                    p1.y = this.puntos[this.edge[i].pointStart].y;
+                    p1.z = this.puntos[this.edge[i].pointStart].z;
+                    p2.x = this.puntos[this.edge[i].pointEnd].x;
+                    p2.y = this.puntos[this.edge[i].pointEnd].y;
+                    p2.z = this.puntos[this.edge[i].pointEnd].z;
+                    p3.x = this.puntos[this.edge[j].pointStart].x;
+                    p3.y = this.puntos[this.edge[j].pointStart].y;
+                    p3.z = this.puntos[this.edge[j].pointStart].z;
+                    p4.x = this.puntos[this.edge[j].pointEnd].x;
+                    p4.y = this.puntos[this.edge[j].pointEnd].y;
+                    p4.z = this.puntos[this.edge[j].pointEnd].z;
+                    pI = this.calculateIntersectionBetweenEdges(p1, p2, p3, p4);
+                    if (pI != null) {
+                        this.insertSubPuntos(pI);
+                    }
+                }
+            }
+        }
+        insertSubPuntos(p) {
+            let band1 = false; //Si esta Repetido
+            let band2 = false; // Si no es un punto definido
+            let band3 = false; // si pertenece a la figura;
+            for (let i = 0; i < this.subPuntos.length; i++) {
+                if (this.subPuntos[i].equalTo(p)) {
+                    band1 = true;
+                    break;
+                }
+            }
+            for (let i = 0; i < this.puntos.length; i++) {
+                if (this.puntos[i].equalTo(p)) {
+                    band2 = true;
+                    break;
+                }
+            }
+            p.rotationZYX(this.angles[0], this.angles[1], this.angles[2])
+            if (p.distanceTo(this.ejes[0]) > this.maxDistanceFromCenter) {
+                band3 = true;
+            }
+            if (band1 === false && band2 === false && band3 == false) {
+                this.subPuntos.push(p);
+            }
+        }
+        coloringPoint(x, y) {
+            let distance = 0;
+            for (let i = 0; i < this.puntos.length; i++) {
+                distance = Math.sqrt((this.puntos[i].xd - x) * (this.puntos[i].xd - x) + (this.puntos[i].yd - y) * (this.puntos[i].yd - y))
+                if ((distance - this.puntos[i].radius * 1.5) <= 0.5) {
+                    this.puntos[i].colored(i);
+                }
+            }
+        }
+        calculateMinAndMaxDistanceFromCenter() {
+            this.distance = [];
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.distance.push(this.puntos[i].distanceTo(this.ejes[0]));
+            }
+            this.distance.sort((a, b) => a - b);
+            this.minDistanceFromCenter = this.distance[0];
+            this.maxDistanceFromCenter = this.distance[this.distance.length - 1];
+            this.distance = [];
+        }
+    }
+
+    class Cube extends Figure {
+        constructor(_tamArista) {
+            super(_tamArista);
+            this.d = this.tamArista / 2;
+            this.puntos.push(new Punto(-this.d, -this.d, -this.d)); //P0
+            this.puntos.push(new Punto(-this.d, -this.d, this.d));  //P1
+            this.puntos.push(new Punto(this.d, -this.d, this.d));   //P2
+            this.puntos.push(new Punto(this.d, -this.d, -this.d));  //P3
+            this.puntos.push(new Punto(-this.d, this.d, -this.d));  //P4
+            this.puntos.push(new Punto(-this.d, this.d, this.d));   //P5
+            this.puntos.push(new Punto(this.d, this.d, this.d));    //P6
+            this.puntos.push(new Punto(this.d, this.d, -this.d));   //P7
+            this.init();
+        }
+    }
+
+    class Tetraedro extends Figure {
+        constructor(_tamArista) {
+            super(_tamArista);
+            this.d = this.tamArista / 2;
+
+            //Punto de la Figura
+            this.puntos.push(new Punto(this.d, 0, -(1 / Math.sqrt(2) * this.d))); //P0
+            this.puntos.push(new Punto(-this.d, 0, -(1 / Math.sqrt(2) * this.d))); //P1
+            this.puntos.push(new Punto(0, this.d, (1 / Math.sqrt(2) * this.d))); //P2
+            this.puntos.push(new Punto(0, -this.d, (1 / Math.sqrt(2) * this.d))); //P3
+
+            this.init();
+
+        }
+    }
+
+    class Piramide extends Figure {
+        constructor(_tamArista) {
+            super(_tamArista);
+            this.d = this.tamArista / Math.sqrt(2);
+
+            //Punto de la Figura
+            this.puntos.push(new Punto(0, -this.d, 0)); //P0
+            this.puntos.push(new Punto(this.d, 0, 0)); //P1
+            this.puntos.push(new Punto(-this.d, 0, 0)); //P2
+            this.puntos.push(new Punto(0, 0, this.d)); //P3
+            this.puntos.push(new Punto(0, 0, -this.d)); //P4
+
+            this.init();
+        }
+    }
+
+    class Octaedro extends Figure {
+        constructor(_tamArista) {
+            super(_tamArista);
+            this.d = this.tamArista / Math.sqrt(2);
+
+            //Punto de la Figura
+            this.puntos.push(new Punto(0, this.d, 0)); //P0
+            this.puntos.push(new Punto(0, -this.d, 0)); //P1
+            this.puntos.push(new Punto(this.d, 0, 0)); //P2
+            this.puntos.push(new Punto(-this.d, 0, 0)); //P3
+            this.puntos.push(new Punto(0, 0, this.d)); //P4
+            this.puntos.push(new Punto(0, 0, -this.d)); //P5
+
+            this.init();
+        }
+    }
+
+    class Icosaedro extends Figure {
+        constructor(_tamArista) {
+            let h = 1 * ((1 + Math.sqrt(5)) / 2);
+            let tamArista = h * _tamArista / 2;
+            super(_tamArista);
+            //Punto de la Figura
+            this.puntos.push(new Punto(0, 1, h));
+            this.puntos.push(new Punto(0, -1, h));
+            this.puntos.push(new Punto(0, 1, -h));
+            this.puntos.push(new Punto(0, -1, -h));
+            this.puntos.push(new Punto(1, h, 0));
+            this.puntos.push(new Punto(-1, h, 0));
+            this.puntos.push(new Punto(1, -h, 0));
+            this.puntos.push(new Punto(-1, -h, 0));
+            this.puntos.push(new Punto(h, 0, 1));
+            this.puntos.push(new Punto(-h, 0, 1));
+            this.puntos.push(new Punto(h, 0, -1));
+            this.puntos.push(new Punto(-h, 0, -1));
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.puntos[i].escalar(tamArista);
+            }
+            this.init();
+        }
+    }
+
+    class Dodecaedro extends Figure {
+        constructor(_tamArista) {
+            let h = 1 * ((1 + Math.sqrt(5)) / 2);
+            let tamArista = h * _tamArista / 2;
+            super(_tamArista);
+
+            //Punto de la Figura
+            this.puntos.push(new Punto(1, 1, 1));
+            this.puntos.push(new Punto(-1, 1, 1));
+            this.puntos.push(new Punto(1, -1, 1));
+            this.puntos.push(new Punto(-1, -1, 1));
+            this.puntos.push(new Punto(1, 1, -1));
+            this.puntos.push(new Punto(-1, 1, -1));
+            this.puntos.push(new Punto(1, -1, -1));
+            this.puntos.push(new Punto(-1, -1, -1));
+
+            this.puntos.push(new Punto(0, h, 1 / h));
+            this.puntos.push(new Punto(0, -h, 1 / h));
+            this.puntos.push(new Punto(0, h, -1 / h));
+            this.puntos.push(new Punto(0, -h, -1 / h));
+
+            this.puntos.push(new Punto(1 / h, 0, h));
+            this.puntos.push(new Punto(-1 / h, 0, h));
+            this.puntos.push(new Punto(1 / h, 0, -h));
+            this.puntos.push(new Punto(-1 / h, 0, -h));
+
+            this.puntos.push(new Punto(h, 1 / h, 0));
+            this.puntos.push(new Punto(-h, 1 / h, 0));
+            this.puntos.push(new Punto(h, -1 / h, 0));
+            this.puntos.push(new Punto(-h, -1 / h, 0));
+
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.puntos[i].escalar(tamArista);
+            }
+            this.init();
+        }
+    }
+
+    class RegularStart extends Figure {
+        constructor(_tamArista) {
+            let h = 1 * ((1 + Math.sqrt(5)) / 2);
+            let tamArista = h * _tamArista / 2;
+            super(_tamArista);
+            //Punto de la Figura
+            this.puntos.push(new Punto(1, 1, 1));
+            this.puntos.push(new Punto(-1, 1, 1));
+            this.puntos.push(new Punto(1, -1, 1));
+            this.puntos.push(new Punto(-1, -1, 1));
+            this.puntos.push(new Punto(1, 1, -1));
+            this.puntos.push(new Punto(-1, 1, -1));
+            this.puntos.push(new Punto(1, -1, -1));
+            this.puntos.push(new Punto(-1, -1, -1));
+
+            this.puntos.push(new Punto(0, h, 1 / h));
+            this.puntos.push(new Punto(0, -h, 1 / h));
+            this.puntos.push(new Punto(0, h, -1 / h));
+            this.puntos.push(new Punto(0, -h, -1 / h));
+
+            this.puntos.push(new Punto(1 / h, 0, h));
+            this.puntos.push(new Punto(-1 / h, 0, h));
+            this.puntos.push(new Punto(1 / h, 0, -h));
+            this.puntos.push(new Punto(-1 / h, 0, -h));
+
+            this.puntos.push(new Punto(h, 1 / h, 0));
+            this.puntos.push(new Punto(-h, 1 / h, 0));
+            this.puntos.push(new Punto(h, -1 / h, 0));
+            this.puntos.push(new Punto(-h, -1 / h, 0));
+
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.puntos[i].escalar(tamArista);
+            }
+            this.init(2 * tamArista);
+        }
+    }
+
+    class RhombicDodecahedron extends Figure {
+        constructor(_tamArista) {
+            super(_tamArista);
+
+            this.puntos.push(new Punto(0, 0, 2));
+            this.puntos.push(new Punto(0, 0, -2));
+            this.puntos.push(new Punto(1, 1, 0));
+            this.puntos.push(new Punto(-1, 1, 0));
+            this.puntos.push(new Punto(1, -1, 0));
+            this.puntos.push(new Punto(-1, -1, 0));
+            this.puntos.push(new Punto(1, 0, 1));
+            this.puntos.push(new Punto(-1, 0, 1));
+            this.puntos.push(new Punto(1, 0, -1));
+            this.puntos.push(new Punto(-1, 0, -1));
+            this.puntos.push(new Punto(0, 1, 1));
+            this.puntos.push(new Punto(0, -1, 1));
+            this.puntos.push(new Punto(0, 1, -1));
+            this.puntos.push(new Punto(0, -1, -1));
+            for (let i = 0; i < this.puntos.length; i++) {
+                this.puntos[i].escalar(_tamArista/Math.sqrt(2));
+            }
+            this.init();
+        }
+    }
+
+
+    function increaseAngleX() {
+        thetaX++;
+        if (thetaX >= 360) {
+            thetaX = 0;
+        }
+        document.getElementsByTagName("p")[1].innerHTML = "&#952;x =" + thetaX + "° | ";
+    }
+    function decreaseAngleX() {
+        thetaX--;
+        if (thetaX <= -360) {
+            thetaX = 0;
+        }
+        document.getElementsByTagName("p")[1].innerHTML = "&#952;x =" + thetaX + "° | ";
+    }
+    function increaseAngleY() {
+        thetaY++;
+        if (thetaY >= 360) {
+            thetaY = 0;
+        }
+        document.getElementsByTagName("p")[2].innerHTML = "&#952;y =" + thetaY + "° | ";
+    }
+    function decreaseAngleY() {
+        thetaY--;
+        if (thetaY <= -360) {
+            thetaY = 0;
+        }
+        document.getElementsByTagName("p")[2].innerHTML = "&#952;y =" + thetaY + "° | ";
+    }
+    function increaseAngleZ() {
+        thetaZ++;
+        if (thetaZ >= 360) {
+            thetaZ = 0;
+        }
+        document.getElementsByTagName("p")[3].innerHTML = "&#952;z =" + thetaZ + "° | ";
+    }
+    function decreaseAngleZ() {
+        thetaZ--;
+        if (thetaZ <= -360) {
+            thetaZ = 0;
+        }
+        document.getElementsByTagName("p")[3].innerHTML = "&#952;z =" + thetaZ + "° | ";
+    }
+
+    function fIncreaseRotateX() {
+        increaseAngleX();
+        figuraDraw();
+    }
+    function fDecreaseRotateX() {
+        decreaseAngleX();
+        figuraDraw();
+    }
+    function fIncreaseRotateY() {
+        increaseAngleY();
+        figuraDraw();
+    }
+    function fDecreaseRotateY() {
+        decreaseAngleY();
+        figuraDraw();
+    }
+    function fIncreaseRotateZ() {
+        increaseAngleZ();
+        figuraDraw();
+    }
+    function fDecreaseRotateZ() {
+        decreaseAngleZ();
+        figuraDraw();
+    }
+    function draw() {
+        increaseAngleX();
+        increaseAngleY();
+        increaseAngleZ();
+        figuraDraw();
+    }
+    function figuraDraw() {
+        figura.rotate(thetaX, thetaY, thetaZ);
+        figura.draw();
+    }
+    function start() {
+        id = setInterval(draw, 50);
+        document.getElementById("btnStart").disabled = true;
+    }
+    function stop() {
+        clearInterval(id);
+        document.getElementById("btnStart").disabled = false;
+        console.log(figura);
+    }
+    function reset() {
+        thetaX = 0;
+        thetaY = 0;
+        thetaZ = 0;
+        fConstructor();
+    }
+
+    function fConstructor() {
+        let x = document.getElementById("typeFigure").selectedIndex;
+        if (x == 0) {
+            figura = new Cube(150);
+        }
+        else if (x == 1) {
+            figura = new Piramide(200);
+        }
+        else if (x == 2) {
+            figura = new Tetraedro(200);
+        }
+        else if (x == 3) {
+            figura = new Octaedro(200);
+        }
+        else if (x == 4) {
+            figura = new Icosaedro(100);
+        }
+        else if (x == 5) {
+            figura = new Dodecaedro(100);
+        }
+        else if (x == 6) {
+            figura = new RegularStart(100);
+        }
+        else if (x == 7) {
+            figura = new RhombicDodecahedron(100);
+        }
+        else {
+            figura = new Cube(200);
+        }
+        thetaX = 0;
+        thetaY = 0;
+        thetaZ = 0;
+        figuraDraw();
+    }
+
+    let thetaX = 0;
+    let thetaY = 0;
+    let thetaZ = 0;
+    let figura = new Object();
+    let id;
+    fConstructor();
+
+    canvas.onmousemove = function (event) {
+        let x = event.layerX;
+        let y = event.layerY;
+        figura.coloringPoint(x, y);
+        if (event.buttons > 0) {
+            if (event.movementX < 0)
+                fDecreaseRotateZ();
+            else {
+                fIncreaseRotateZ();
+            }
+            if (event.movementY < 0)
+                fDecreaseRotateY();
+            else {
+                fIncreaseRotateY();
+            }
+        }
+    }
+
+</script>

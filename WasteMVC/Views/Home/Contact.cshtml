@@ -1,17 +1,90 @@
 ﻿@{
     ViewData["Title"] = "Contact";
 }
-<h2>@ViewData["Title"].</h2>
-<h3>@ViewData["Message"]</h3>
 
-<address>
-    One Microsoft Way<br />
-    Redmond, WA 98052-6399<br />
-    <abbr title="Phone">P:</abbr>
-    425.555.0100
-</address>
 
-<address>
-    <strong>Support:</strong> <a href="mailto:Support@example.com">Support@example.com</a><br />
-    <strong>Marketing:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
-</address>
+<canvas id="canvas" width="700" height="500"></canvas>
+
+<script>
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let sun = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 40,
+        color: 'yellow',
+        draw: function () {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+
+            ctx.beginPath();
+            //ctx.arc(this.x, this.y, earth.hypotenuse, 0, Math.PI * 2, false); // Earth orbit Circular
+            ctx.ellipse(this.x + 30, this.y, earth.hypotenuse, earth.hypotenuse / 1.5, 0, 0, 2 * Math.PI, false); // Earth Elliptical Orbit
+            ctx.closePath();
+            ctx.stroke();
+
+        }
+    }
+
+    let earth = {
+        x: 0,
+        y: 0,
+        angle: 0,
+        hypotenuse: 200,
+        radius: 20,
+        color: 'blue',
+        draw: function () {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, moon.hypotenuse, 0, Math.PI * 2, false); // Moon orbit
+            ctx.closePath();
+            ctx.stroke();
+
+        },
+        translate: function () {
+            this.angle += 0.1;
+            this.x = sun.x + 30 + this.hypotenuse * Math.cos(this.angle * (Math.PI / 180));
+            this.y = sun.y + this.hypotenuse / 1.5 * Math.sin(this.angle * (Math.PI / 180));
+        }
+    }
+
+    let moon = {
+        x: 0,
+        y: 0,
+        angle: 0,
+        hypotenuse: 50,
+        radius: 10,
+        color: 'black',
+        draw: function () {
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        },
+        translate: function () {
+            this.angle += 1;
+            this.x = earth.x + this.hypotenuse * Math.cos(this.angle * (Math.PI / 180));
+            this.y = earth.y + this.hypotenuse * Math.sin(this.angle * (Math.PI / 180));
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        earth.translate();
+        moon.translate();
+        sun.draw();
+        earth.draw();
+        moon.draw();
+    }
+    setInterval(draw, 50)
+</script>

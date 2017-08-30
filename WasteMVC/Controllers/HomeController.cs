@@ -121,6 +121,11 @@ namespace WasteMVC.Controllers
             return View();
         }
 
+        public IActionResult JS1()
+        {
+            return View();
+        }
+
         public IActionResult Error()
         {
             return View();
